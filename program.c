@@ -4,23 +4,27 @@
 
 typedef unsigned char byte;
 
+// Представляет из себя тип данных, который хранит в себе double значение и флаг.
 typedef struct {
-	double numerical;
-	byte flag;
+	double numerical; // Численное значение.
+	byte flag; // Если 0 - значит, лучше отрицательное значение. Если 1 - лучше положительные значения.
 } doubleFlag;
 
+// Структура обозначает массив строк.
 typedef struct {
-	char * str;
-	size_t length;
+	char * str; // Указатель на первый символ строки.
+	size_t length; // Количество доступных символов.
 } string;
 
+// Символизирует строку таблицы: название экземпляра и указатель на начало его параметров.
 typedef struct {
 	string str;
 	doubleFlag * columns;
 } strValues;
 
-// Структура, которая хранит в себе указатель на начало строк, количество строк и количество столбцов.
+// Структура, которая хранит в себе указатель на начало списка экземпляров, количество строк и количество столбцов.
 typedef struct {
+	string * title; // Указатель на заголовки таблицы.
 	strValues * lines; // Представляет собой строку с именем экземпляра и его значениями.
 	size_t countLines; // Количество экземпляров в таблице.
 	size_t countColumns; // Количество критериев экземпляров в таблице.
@@ -64,20 +68,34 @@ int destructorTableFree(strValueTable input)
 			free(input.lines[i].str.str);
 		}
 	}
-	return flag > (int)flag ? (int)0x80000000 : -(int)flag; // Защита от переполнения.
+	return flag > (int)flag ? 1 << (sizeof(int)*8) - 1 : -(int)flag; // Защита от переполнения.
 }
 
 int intilizalTableMalloc(size_t countLines, size_t countColumns, size_t countChars)
 {
 	strValueTable table = {
-		(strValues *)malloc(sizeof(strValues) * countLines), // Указатель на экземпляры
+		(string *) malloc(sizeof(string) * countColumns)
+		(strValues *) malloc(sizeof(strValues) * countLines), // Указатель на экземпляры
 		countLines, // Количество экземпляров
 		countColumns // Критерии
 	};
-	if (table.lines == NULL)
+	if (table.lines == NULL || table.titles == NULL)
 	{
 		printf("malloc error [lines].\n");
 		return 1;
+	}
+	for (size_t i = 0; i < table.countLines; i++)
+	{
+		table.titles[i].str = (char*) malloc(sizeof(char)*countChars);
+		table.titles[i].length = countChars;
+		if(table.titles[i].str == NULL)
+		{
+			table.titles[i--].length = 0; 
+			for(; i != ~(size_t)0; i--)
+			{
+				free(table.titles[i].str);
+			}
+		}
 	}
 	for (size_t i = 0; i < table.countLines; i++)
 	{
