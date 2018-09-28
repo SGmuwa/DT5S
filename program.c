@@ -24,7 +24,7 @@ typedef struct {
 
 // Структура, которая хранит в себе указатель на начало списка экземпляров, количество строк и количество столбцов.
 typedef struct {
-	string * title; // Указатель на заголовки таблицы.
+	string * titles; // Указатель на заголовки таблицы.
 	strValues * lines; // Представляет собой строку с именем экземпляра и его значениями.
 	size_t countLines; // Количество экземпляров в таблице.
 	size_t countColumns; // Количество критериев экземпляров в таблице.
@@ -90,6 +90,10 @@ strValueTable pareto_find(strValueTable input)
 int destructorTableFree(strValueTable input)
 {
 	size_t flag = 0;
+	if (input.titles != NULL)
+	{
+		free(input.titles);
+	}
 	if (input.lines == NULL)
 		return 1;
 	for (size_t i = 0; i < input.countLines; i++)
@@ -105,13 +109,14 @@ int destructorTableFree(strValueTable input)
 			free(input.lines[i].str.str);
 		}
 	}
+	free(input.lines);
 	return flag > (int)flag ? 1 << (sizeof(int)*8) - 1 : -(int)flag; // Защита от переполнения.
 }
 
 int intilizalTableMalloc(size_t countLines, size_t countColumns, size_t countChars)
 {
 	strValueTable table = {
-		(string *) malloc(sizeof(string) * countColumns)
+		(string *) malloc(sizeof(string) * countColumns),
 		(strValues *) malloc(sizeof(strValues) * countLines), // Указатель на экземпляры
 		countLines, // Количество экземпляров
 		countColumns // Критерии
@@ -121,7 +126,7 @@ int intilizalTableMalloc(size_t countLines, size_t countColumns, size_t countCha
 		printf("malloc error [lines].\n");
 		return 1;
 	}
-	for (size_t i = 0; i < table.countLines; i++)
+	for (size_t i = 0; i < table.countColumns; i++)
 	{
 		table.titles[i].str = (char*) malloc(sizeof(char)*countChars);
 		table.titles[i].length = countChars;
@@ -132,6 +137,9 @@ int intilizalTableMalloc(size_t countLines, size_t countColumns, size_t countCha
 			{
 				free(table.titles[i].str);
 			}
+			free(table.titles);
+			free(table.lines);
+			return 4;
 		}
 	}
 	for (size_t i = 0; i < table.countLines; i++)
@@ -174,45 +182,7 @@ int intilizalTableMalloc(size_t countLines, size_t countColumns, size_t countCha
 // 3 - не хватило памяти для создания поля имени. Память очищается.
 int intilizalDefaultTableMalloc(strValueTable * output)
 {
-	strValueTable table = {
-		(strValues *)malloc(sizeof(strValues) * 10), // Указатель на экземпляры
-		10, // Количество экземпляров
-		5 // Критерии
-	};
-	if (table.lines == NULL)
-	{
-		printf("malloc error [lines].\n");
-		return 1;
-	}
-	for (size_t i = 0; i < table.countLines; i++)
-	{
-		table.lines[i].columns = (doubleFlag*)malloc(sizeof(doubleFlag) * table.countColumns);
-		if (table.lines[i].columns == NULL)
-		{
-			printf("malloc error [lines[%d].columns]\n", i);
-
-			for (size_t ii = i - 1; ii != ~(size_t)0; ii--)
-			{
-				free(table.lines[ii].columns);
-				free(table.lines[ii].str.str);
-			}
-			free(table.lines);
-			return 2;
-		}
-		table.lines[i].str.str = (char *)malloc(sizeof(char) * 10);
-		if (table.lines[i].str.str == NULL)
-		{
-			printf("malloc error [lines[%d].str.str]\n", i);
-			free(table.lines[i].columns);
-			for (size_t ii = i - 1; ii != ~(size_t)0; ii--)
-			{
-				free(table.lines[ii].columns);
-				free(table.lines[ii].str.str);
-			}
-			free(table.lines);
-			return 3;
-		}
-	}
+	intilizalTableMalloc(10, 5, 128);
 }
 
 void intilizalTableMalloc_free_test(void)
