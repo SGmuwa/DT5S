@@ -33,10 +33,47 @@ typedef struct {
 // Отвечает на вопрос, кто по Парето лучше?
 // first - первый представитель.
 // second - второй представитель.
-// Возвращает: 1, если первый лучше второго. 0 - если второй лучше первого. 2 - если нельзя сравнить.
-byte pareto_isFirstBetter(strValues first, strValues second)
+// size_t countColumns - количество характеристик представителей.
+// Возвращает: 1, если первый лучше второго. 0 - если нельяз сравнить. 2 - второй лучше первого. 255 - ошибка.
+byte pareto_isFirstBetter(strValues first, strValues second, size_t countColumns)
 {
+	size_t better[3] = {
+		0, // ничья
+		0, // первый лучше
+		0  // второй лучше
+	};
+	for (size_t i = countColumns - 1; i != ~(size_t)0; --i)
+	{
+		if (first.columns[i].flag != first.columns[i].flag)
+			return -1;
 
+		if (first.columns[i].numerical == second.columns[i].numerical)
+			better[0]++; // Если равны, то ничья.
+
+		else if (first.columns[i].flag) // Стримится к положительным числам.
+		{
+			if (first.columns[i].numerical > second.columns[i].numerical)
+				better[1]++;
+			else//if(first.columns[i].numerical <  second.columns[i].numerical)
+				better[2]++;
+		}
+		else // Стримится к отрицательным числам.
+		{
+			if (first.columns[i].numerical < second.columns[i].numerical)
+				better[1]++;
+			else//if(first.columns[i].numerical >  second.columns[i].numerical)
+				better[2]++;
+		}
+
+		if (better[1] != 0 && better[2] != 0)
+			return 0;
+	}
+	if (better[1] == 0)
+		return 2;
+	else if (better[2] == 0)
+		return 1;
+	else
+		return 0;
 }
 
 // Реализовать программу, которая ищет множество Парето
