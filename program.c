@@ -93,8 +93,11 @@ Pareto_strValueTable Pareto_find(Pareto_strValueTable input)
 		for (size_t y = x - 1; y != ~(size_t)0;)
 		{
 			change = Pareto_isFirstBetter(input.lines[x], input.lines[y], input.countColumns);
-			if(change == 255)
+			if (change == 255)
+			{
+				free(loosers);
 				return (Pareto_strValueTable) { NULL, NULL, 0, 0 };
+			}
 			if (change != 0)
 				loosers[loo_idx++] = change == 1 ? y : x;
 		}
@@ -107,6 +110,7 @@ Pareto_strValueTable Pareto_find(Pareto_strValueTable input)
 			if (loosers[i] == loosers[j])
 				loosers[i] = ~(size_t)0;
 	// Выборка проигравших. TODO
+	free(loosers);
 }
 
 // Освобождает из памяти таблицу.
