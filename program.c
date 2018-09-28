@@ -1,6 +1,7 @@
 // Реализовать программу, которая реализует субоптимизацию
 
 #include "UserInterface.h"
+#include <stdlib.h>
 
 typedef unsigned char byte;
 
@@ -86,31 +87,45 @@ Pareto_strValueTable pareto_find(Pareto_strValueTable input)
 // strValueTable input - входящая таблица, которую необходимо освободить.
 // Возвращает: код ошибки.
 // 1 - строки не найдены.
+// 2 - отправлен NULL.
 // -n - программа сработала хорошо, но были найдены указатели NULL в количестве n.
-int Pareto_destructorTableFree(Pareto_strValueTable input)
+int Pareto_destructorTableFree(Pareto_strValueTable * input)
 {
 	size_t flag = 0;
-	if (input.titles != NULL)
+	if (input == NULL)
 	{
-		free(input.titles);
+		return 2;
 	}
-	if (input.lines == NULL)
+	if (input->titles != NULL)
+	{
+		for (size_t i = input->countColumns; --i != ~(size_t)0;)
+		{
+			if (input->titles[i].str != NULL)
+				free(input->titles[i].str);
+		}
+		free(input->titles);
+	}
+	if (input->lines == NULL)
 		return 1;
-	for (size_t i = 0; i < input.countLines; i++)
+	for (size_t i = 0; i < input->countLines; i++)
 	{
-		if (input.lines[i].columns != NULL)
+		if (input->lines[i].columns != NULL)
 		{
-			free(input.lines[i].columns);
+			free(input->lines[i].columns);
 			flag++;
 		}
-		if (input.lines[i].name.str != NULL)
+		if (input->lines[i].name.str != NULL)
 		{
 			flag++;
-			free(input.lines[i].name.str);
+			free(input->lines[i].name.str);
 		}
 	}
-	free(input.lines);
-	return flag > (int)flag ? 1 << (sizeof(int)*8) - 1 : -(int)flag; // Защита от переполнения.
+	free(input->lines);
+	input->countColumns = 0;
+	input->countLines = 0;
+	input->lines = NULL;
+	input->titles = NULL;
+	return flag > (int)flag ? 1 << ((sizeof(int)*8) - 1) : -(int)flag; // Защита от переполнения.
 }
 
 // Создание в памяти таблицы Парето
@@ -148,7 +163,7 @@ int Pareto_intilizalTableMalloc(Pareto_strValueTable * out, size_t countLines, s
 		table.lines[i].columns = (doubleFlag*)malloc(sizeof(doubleFlag) * table.countColumns);
 		if (table.lines[i].columns == NULL)
 		{
-			printf("malloc error [lines[%d].columns]\n", i);
+			printf("malloc error [lines[%lu].columns]\n", (unsigned long)i);
 
 			for (size_t ii = i - 1; ii != ~(size_t)0; ii--)
 			{
@@ -159,9 +174,10 @@ int Pareto_intilizalTableMalloc(Pareto_strValueTable * out, size_t countLines, s
 			return 2;
 		}
 		table.lines[i].name.str = (char *)malloc(sizeof(char) * countChars);
+		table.lines[i].name.length = countChars;
 		if (table.lines[i].name.str == NULL)
 		{
-			printf("malloc error [lines[%d].name.str]\n", i);
+			printf("malloc error [lines[%ul].name.str]\n", (unsigned long)i);
 			free(table.lines[i].columns);
 			for (size_t ii = i - 1; ii != ~(size_t)0; ii--)
 			{
@@ -184,7 +200,7 @@ int Pareto_intilizalTableMalloc(Pareto_strValueTable * out, size_t countLines, s
 // 3 - не хватило памяти для создания поля имени. Память очищается.
 int Pareto_intilizalDefaultTableMalloc(Pareto_strValueTable * output)
 {
-	Pareto_intilizalTableMalloc(output, 10, 5, 128);
+	return Pareto_intilizalTableMalloc(output, 10, 5, 128);
 }
 
 void Pareto_intilizalTableMalloc_free_test(void)
@@ -226,7 +242,7 @@ void Pareto_intilizalTableMalloc_free_test(void)
 
 		if (testing.lines[i].name.length != 10)
 		{
-			printf("error testing.lines[i].name.length != 10\n");
+			printf("error testing.lines[i].name.length != 10\n"); 
 			return;
 		}
 		for (size_t ch = 0; ch < 10; ch++)
@@ -269,7 +285,7 @@ void Pareto_intilizalTableMalloc_free_test(void)
 				printf("error testing.titles[i].str[ch] != '0' + (char)ch\n");
 	}
 
-	Pareto_destructorTableFree(testing);
+	Pareto_destructorTableFree(&testing);
 
 	if (testing.countColumns != 0)
 		printf("error testing.countColumns != 0");
@@ -283,10 +299,34 @@ void Pareto_intilizalTableMalloc_free_test(void)
 	printf("Pareto intilizalTableMalloc and free\tFinish test...\n");
 }
 
+void Pareto_manyintilizalTableMalloc_free_test(void)
+{
+	printf("Start many Pareto test...\n");
+	Pareto_strValueTable a;
+	for (size_t i = 0; i < 10000; i++) {
+		Pareto_intilizalTableMalloc(&a, 100, 100, 100);
+		Pareto_destructorTableFree(&a);
+	}
+	printf("Finish manny Pareto test.\n");
+}
+
+void manyMallocFree_test(void)
+{
+	printf("Start many malloc test...\n");
+	void * a;
+	for (size_t i = 0; i < 4000000; i++) {
+		a = malloc(1024*4);
+		free(a);
+	}
+	printf("Finish many free test.\n");
+}
+
 void z1_test(void)
 {
 	printf("z1\tStart test...\n");
 	Pareto_intilizalTableMalloc_free_test();
+	manyMallocFree_test();
+	Pareto_manyintilizalTableMalloc_free_test();
 	printf("z1\tFinish test...\n");
 }
 
