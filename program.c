@@ -78,9 +78,35 @@ byte Pareto_isFirstBetter(Pareto_strValues first, Pareto_strValues second, size_
 }
 
 // Реализовать программу, которая ищет множество Парето
-Pareto_strValueTable pareto_find(Pareto_strValueTable input)
+Pareto_strValueTable Pareto_find(Pareto_strValueTable input)
 {
+	// Поиск проигравших.
 
+	size_t * loosers = (size_t *) malloc(sizeof(size_t) * input.countLines); // лист лузеров.
+	if (loosers == NULL)
+		return (Pareto_strValueTable){ NULL, NULL, 0, 0 }; // Не хватило памяти.
+	for (size_t i = input.countLines; --i != ~(size_t)0;)
+		loosers[i] = ~(size_t)0;
+	size_t loo_idx = 0; // идентификатор листа лузеров
+	byte change;
+	for (size_t x = input.countLines; --x != 0;)
+		for (size_t y = x - 1; y != ~(size_t)0;)
+		{
+			change = Pareto_isFirstBetter(input.lines[x], input.lines[y], input.countColumns);
+			if(change == 255)
+				return (Pareto_strValueTable) { NULL, NULL, 0, 0 };
+			if (change != 0)
+				loosers[loo_idx++] = change == 1 ? y : x;
+		}
+
+	// Удаление одинаковых чисел из loosers.
+	for (size_t i = input.countLines; --i != 0;)
+		if (loosers[i] == ~(size_t)0)
+			continue;
+		else for (size_t j = i; --j != ~(size_t)0;)
+			if (loosers[i] == loosers[j])
+				loosers[i] = ~(size_t)0;
+	// Выборка проигравших. TODO
 }
 
 // Освобождает из памяти таблицу.
