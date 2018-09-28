@@ -18,24 +18,24 @@ typedef struct {
 
 // Символизирует строку таблицы: название экземпляра и указатель на начало его параметров.
 typedef struct {
-	string str;
+	string name;
 	doubleFlag * columns;
-} strValues;
+} Pareto_strValues;
 
 // Структура, которая хранит в себе указатель на начало списка экземпляров, количество строк и количество столбцов.
 typedef struct {
 	string * titles; // Указатель на заголовки таблицы.
-	strValues * lines; // Представляет собой строку с именем экземпляра и его значениями.
+	Pareto_strValues * lines; // Представляет собой строку с именем экземпляра и его значениями.
 	size_t countLines; // Количество экземпляров в таблице.
 	size_t countColumns; // Количество критериев экземпляров в таблице.
-} strValueTable;
+} Pareto_strValueTable;
 
 // Отвечает на вопрос, кто по Парето лучше?
 // first - первый представитель.
 // second - второй представитель.
 // size_t countColumns - количество характеристик представителей.
 // Возвращает: 1, если первый лучше второго. 0 - если нельяз сравнить. 2 - второй лучше первого. 255 - ошибка.
-byte pareto_isFirstBetter(strValues first, strValues second, size_t countColumns)
+byte Pareto_isFirstBetter(Pareto_strValues first, Pareto_strValues second, size_t countColumns)
 {
 	size_t better[3] = {
 		0, // ничья
@@ -77,7 +77,7 @@ byte pareto_isFirstBetter(strValues first, strValues second, size_t countColumns
 }
 
 // Реализовать программу, которая ищет множество Парето
-strValueTable pareto_find(strValueTable input)
+Pareto_strValueTable pareto_find(Pareto_strValueTable input)
 {
 
 }
@@ -87,7 +87,7 @@ strValueTable pareto_find(strValueTable input)
 // Возвращает: код ошибки.
 // 1 - строки не найдены.
 // -n - программа сработала хорошо, но были найдены указатели NULL в количестве n.
-int destructorTableFree(strValueTable input)
+int Pareto_destructorTableFree(Pareto_strValueTable input)
 {
 	size_t flag = 0;
 	if (input.titles != NULL)
@@ -103,21 +103,22 @@ int destructorTableFree(strValueTable input)
 			free(input.lines[i].columns);
 			flag++;
 		}
-		if (input.lines[i].str.str != NULL)
+		if (input.lines[i].name.str != NULL)
 		{
 			flag++;
-			free(input.lines[i].str.str);
+			free(input.lines[i].name.str);
 		}
 	}
 	free(input.lines);
 	return flag > (int)flag ? 1 << (sizeof(int)*8) - 1 : -(int)flag; // Защита от переполнения.
 }
 
-int intilizalTableMalloc(size_t countLines, size_t countColumns, size_t countChars)
+// Создание в памяти таблицы Парето
+int Pareto_intilizalTableMalloc(Pareto_strValueTable * out, size_t countLines, size_t countColumns, size_t countChars)
 {
-	strValueTable table = {
+	Pareto_strValueTable table = {
 		(string *) malloc(sizeof(string) * countColumns),
-		(strValues *) malloc(sizeof(strValues) * countLines), // Указатель на экземпляры
+		(Pareto_strValues *) malloc(sizeof(Pareto_strValues) * countLines), // Указатель на экземпляры
 		countLines, // Количество экземпляров
 		countColumns // Критерии
 	};
@@ -152,25 +153,26 @@ int intilizalTableMalloc(size_t countLines, size_t countColumns, size_t countCha
 			for (size_t ii = i - 1; ii != ~(size_t)0; ii--)
 			{
 				free(table.lines[ii].columns);
-				free(table.lines[ii].str.str);
+				free(table.lines[ii].name.str);
 			}
 			free(table.lines);
 			return 2;
 		}
-		table.lines[i].str.str = (char *)malloc(sizeof(char) * countChars);
-		if (table.lines[i].str.str == NULL)
+		table.lines[i].name.str = (char *)malloc(sizeof(char) * countChars);
+		if (table.lines[i].name.str == NULL)
 		{
-			printf("malloc error [lines[%d].str.str]\n", i);
+			printf("malloc error [lines[%d].name.str]\n", i);
 			free(table.lines[i].columns);
 			for (size_t ii = i - 1; ii != ~(size_t)0; ii--)
 			{
 				free(table.lines[ii].columns);
-				free(table.lines[ii].str.str);
+				free(table.lines[ii].name.str);
 			}
 			free(table.lines);
 			return 3;
 		}
 	}
+	*out = table;
 	return 0;
 }
 
@@ -180,22 +182,111 @@ int intilizalTableMalloc(size_t countLines, size_t countColumns, size_t countCha
 // 1 - не хватило памяти при создании строк таблицы. Память очищается.
 // 2 - не хватило памяти для создания. Память очищается.
 // 3 - не хватило памяти для создания поля имени. Память очищается.
-int intilizalDefaultTableMalloc(strValueTable * output)
+int Pareto_intilizalDefaultTableMalloc(Pareto_strValueTable * output)
 {
-	intilizalTableMalloc(10, 5, 128);
+	Pareto_intilizalTableMalloc(output, 10, 5, 128);
 }
 
-void intilizalTableMalloc_free_test(void)
+void Pareto_intilizalTableMalloc_free_test(void)
 {
-	printf("intilizalTableMalloc and free\tStart test...\n");
+	printf("Pareto intilizalTableMalloc and free\tStart test...\n");
+	Pareto_strValueTable testing;
+	if (Pareto_intilizalTableMalloc(&testing, 5, 6, 10) != 0)
+	{
+		printf("error to create table.\n");
+		return;
+	}
 
-	printf("intilizalTableMalloc and free\tFinish test...\n");
+	// Тестирование значений таблицы
+
+	if (testing.countColumns != 6)
+		printf("error testing.countColumns\n");
+	if (testing.countLines != 5)
+		printf("error testing.countLines\n");
+
+	// Тестирование пустых указателей таблицы
+
+	if (testing.lines == NULL)
+	{
+		printf("error: lines NULL\n");
+		return;
+	}
+	if (testing.titles == NULL)
+	{
+		printf("error: testing.titles NULL\n");
+		return;
+	}
+
+	// Тестирование экземпляров таблицы
+
+	for (size_t i = testing.countLines; --i != ~(size_t)0u; )
+	{
+
+		// Тестирование имён экхемпляров
+
+		if (testing.lines[i].name.length != 10)
+		{
+			printf("error testing.lines[i].name.length != 10\n");
+			return;
+		}
+		for (size_t ch = 0; ch < 10; ch++)
+			testing.lines[i].name.str[ch] = '0' + (char)ch;
+		for (size_t ch = 0; ch < 10; ch++)
+			if (testing.lines[i].name.str[ch] != '0' + (char)ch)
+				printf("error testing.lines[i].name.str[ch] != '0' + (char)ch\n");
+
+		// Тестирование значений экземпляра
+
+		if (testing.lines[i].columns == NULL)
+		{
+			printf("error testing.lines[i].columns == NULL\n");
+			return;
+		}
+
+		for (size_t j = testing.countColumns; --j != ~(size_t)0;)
+		{
+			testing.lines[i].columns[j].flag = 0;
+			testing.lines[i].columns[j].numerical = 123;
+			if (testing.lines[i].columns[j].flag != 0)
+				printf("error testing.lines[i].columns[j].flag != 0");
+			if(testing.lines[i].columns[j].numerical != 123)
+				printf("error testing.lines[i].columns[j].numerical != 123");
+		}
+	}
+
+	// Тестирование заголовков таблицы
+	for (size_t i = testing.countColumns; --i != ~(size_t)0;)
+	{
+		if (testing.titles[i].length != 10)
+		{
+			printf("error testing.titles[i].length != 10\n");
+			return;
+		}
+		for (size_t ch = 0; ch < 10; ch++)
+			testing.titles[i].str[ch] = '0' + (char)ch;
+		for (size_t ch = 0; ch < 10; ch++)
+			if (testing.titles[i].str[ch] != '0' + (char)ch)
+				printf("error testing.titles[i].str[ch] != '0' + (char)ch\n");
+	}
+
+	Pareto_destructorTableFree(testing);
+
+	if (testing.countColumns != 0)
+		printf("error testing.countColumns != 0");
+	if (testing.countLines != 0)
+		printf("error testing.countLines != 0");
+	if (testing.lines != NULL)
+		printf("error testing.lines != NULL");
+	if (testing.titles != NULL)
+		printf("error testing.titles != NULL");
+
+	printf("Pareto intilizalTableMalloc and free\tFinish test...\n");
 }
 
 void z1_test(void)
 {
 	printf("z1\tStart test...\n");
-	
+	Pareto_intilizalTableMalloc_free_test();
 	printf("z1\tFinish test...\n");
 }
 
