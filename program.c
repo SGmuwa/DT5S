@@ -17,9 +17,8 @@ typedef struct {
 	size_t length; // Количество доступных символов.
 } string;
 
-// Символизирует строку таблицы: название экземпляра и указатель на начало его параметров.
+// Символизирует строку таблицы: указатель на начало параметров экземпляра.
 typedef struct {
-	string name;
 	doubleFlag * columns;
 } Pareto_strValues;
 
@@ -109,7 +108,26 @@ Pareto_strValueTable Pareto_find(Pareto_strValueTable input)
 		else for (size_t j = i; --j != ~(size_t)0;)
 			if (loosers[i] == loosers[j])
 				loosers[i] = ~(size_t)0;
+
+	size_t countFind = 0; // Количество найденных
+
+	for (size_t i = input.countLines; --i != ~(size_t)0;)
+		if (loosers[i] != ~(size_t)0)
+			countFind++;
+
 	// Выборка проигравших. TODO
+
+	Pareto_strValueTable out;
+
+	size_t countStr = 0; // Количество необходимых символов.
+	for(size_t i = input.countColumns; --i != ~(size_t)0;)
+		input.titles
+
+	if(Pareto_intilizalTableMalloc(&out, countFind, input.countColumns, ) != 0)
+
+	
+
+
 	free(loosers);
 }
 
@@ -143,11 +161,6 @@ int Pareto_destructorTableFree(Pareto_strValueTable * input)
 		{
 			free(input->lines[i].columns);
 			flag++;
-		}
-		if (input->lines[i].name.str != NULL)
-		{
-			flag++;
-			free(input->lines[i].name.str);
 		}
 	}
 	free(input->lines);
@@ -198,24 +211,9 @@ int Pareto_intilizalTableMalloc(Pareto_strValueTable * out, size_t countLines, s
 			for (size_t ii = i - 1; ii != ~(size_t)0; ii--)
 			{
 				free(table.lines[ii].columns);
-				free(table.lines[ii].name.str);
 			}
 			free(table.lines);
 			return 2;
-		}
-		table.lines[i].name.str = (char *)malloc(sizeof(char) * countChars);
-		table.lines[i].name.length = countChars;
-		if (table.lines[i].name.str == NULL)
-		{
-			printf("malloc error [lines[%ul].name.str]\n", (unsigned long)i);
-			free(table.lines[i].columns);
-			for (size_t ii = i - 1; ii != ~(size_t)0; ii--)
-			{
-				free(table.lines[ii].columns);
-				free(table.lines[ii].name.str);
-			}
-			free(table.lines);
-			return 3;
 		}
 	}
 	*out = table;
@@ -267,19 +265,6 @@ void Pareto_intilizalTableMalloc_free_test(void)
 
 	for (size_t i = testing.countLines; --i != ~(size_t)0u; )
 	{
-
-		// Тестирование имён экхемпляров
-
-		if (testing.lines[i].name.length != 10)
-		{
-			printf("error testing.lines[i].name.length != 10\n"); 
-			return;
-		}
-		for (size_t ch = 0; ch < 10; ch++)
-			testing.lines[i].name.str[ch] = '0' + (char)ch;
-		for (size_t ch = 0; ch < 10; ch++)
-			if (testing.lines[i].name.str[ch] != '0' + (char)ch)
-				printf("error testing.lines[i].name.str[ch] != '0' + (char)ch\n");
 
 		// Тестирование значений экземпляра
 
