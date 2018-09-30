@@ -2,6 +2,7 @@
 
 #include "UserInterface.h"
 #include <stdlib.h>
+#include <string.h>
 
 typedef unsigned char byte;
 
@@ -24,10 +25,10 @@ typedef struct {
 
 // Структура, которая хранит в себе указатель на начало списка экземпляров, количество строк и количество столбцов.
 typedef struct {
-	string * titles; // Указатель на заголовки таблицы.
-	Pareto_strValues * lines; // Представляет собой строку с именем экземпляра и его значениями.
-	size_t countLines; // Количество экземпляров в таблице.
-	size_t countColumns; // Количество критериев экземпляров в таблице.
+	string * titles;			// Указатель на заголовки таблицы.
+	Pareto_strValues * lines;	// Представляет собой строку с именем экземпляра и его значениями.
+	size_t countLines;			// Количество экземпляров в таблице.
+	size_t countColumns;		// Количество критериев экземпляров в таблице.
 } Pareto_strValueTable;
 
 // Отвечает на вопрос, кто по Парето лучше?
@@ -109,26 +110,71 @@ Pareto_strValueTable Pareto_find(Pareto_strValueTable input)
 			if (loosers[i] == loosers[j])
 				loosers[i] = ~(size_t)0;
 
-	size_t countFind = 0; // Количество найденных
+	size_t countLoosers = 0; // Количество найденных
 
 	for (size_t i = input.countLines; --i != ~(size_t)0;)
 		if (loosers[i] != ~(size_t)0)
-			countFind++;
+			countLoosers++;
 
-	// Выборка проигравших. TODO
+	Pareto_strValueTable out =
+	{
+		NULL, // Указатель на заголовки таблицы.
+		NULL, // Представляет собой строку с именем экземпляра и его значениями.
+		0,	  // Количество экземпляров в таблице.
+		0	  // Количество критериев экземпляров в таблице.
+	};
 
-	Pareto_strValueTable out;
+	size_t countMaybeWinners = input.countLines - countLoosers;
+	size_t * maybeWinners = (size_t *) malloc(countMaybeWinners * sizeof(size_t));
 
-	size_t countStr = 0; // Количество необходимых символов.
-	for(size_t i = input.countColumns; --i != ~(size_t)0;)
-		input.titles
+	if (maybeWinners == NULL)
+	{
+		free(loosers);
+		return out;
+	}
 
-	if(Pareto_intilizalTableMalloc(&out, countFind, input.countColumns, ) != 0)
-
-	
-
+	for (size_t i = input.countLines, iMay = 0; --i != ~(size_t)0;)
+	{
+		size_t j = input.countLines;
+		while(--j != ~(size_t)0)
+			if (loosers[j] == i) // Лузер найден!
+			{
+				// Надо не дать лузеру дойти до входа!
+				break;
+			}
+		if (j == ~(size_t)0)
+			maybeWinners[iMay++] = i;
+	}
 
 	free(loosers);
+
+	// Копирование заголовков.
+
+	size_t maxCountStr = input.titles[0].length; // Количество необходимых символов.
+	size_t countStr = input.titles[0].length; // Сумма всех символов.
+	
+	for (size_t i = input.countColumns; --i != 0;)
+	{
+		countStr += input.titles[i].length;
+		if (maxCountStr < input.titles[i].length)
+			maxCountStr = input.titles[i].length;
+	}
+
+	if (Pareto_intilizalTableMalloc(&out, countMaybeWinners, input.countColumns, maxCountStr) != 0)
+	{
+		free(maybeWinners);
+		return out;
+	}
+
+	for(size_t i = out.countColumns; --i != ~(size_t)0;)
+		memcpy_s(out.titles + i, maxCountStr, input.titles + i, input.titles[i].length);
+	
+	// Выборка: оставить тех, кто выиграл.
+
+	for (size_t i = out.countLines; --i != ~(size_t)0;)
+		out.lines[i] = input.lines[maybeWinners[i]];
+	free(maybeWinners);
+	return out;
 }
 
 // Освобождает из памяти таблицу.
@@ -334,6 +380,11 @@ void manyMallocFree_test(void)
 		free(a);
 	}
 	printf("Finish many free test.\n");
+}
+
+void Pareto_Pareto_find_test(void)
+{
+
 }
 
 void z1_test(void)
