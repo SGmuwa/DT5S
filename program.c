@@ -31,12 +31,27 @@ typedef struct {
 	size_t countColumns;		// Количество критериев экземпляров в таблице.
 } Pareto_strValueTable;
 
+int Pareto_write(const Pareto_strValueTable input)
+{
+	for (size_t i = 0; i < input.countColumns; i++)
+		printf("%s\t|", input.titles[i]);
+	printf("\n");
+	for (size_t i = 0; i < input.countLines; i++)
+	{
+		for (size_t j = 0; j < input.countColumns; j++)
+		{
+			printf("%f\t|", input.lines[i].columns[j].numerical);
+		}
+		printf("\n");
+	}
+}
+
 // Отвечает на вопрос, кто по Парето лучше?
 // first - первый представитель.
 // second - второй представитель.
 // size_t countColumns - количество характеристик представителей.
 // Возвращает: 1, если первый лучше второго. 0 - если нельяз сравнить. 2 - второй лучше первого. 255 - ошибка.
-byte Pareto_isFirstBetter(Pareto_strValues first, Pareto_strValues second, size_t countColumns)
+byte Pareto_isFirstBetter(const Pareto_strValues first, const Pareto_strValues second, size_t countColumns)
 {
 	size_t better[3] = {
 		0, // ничья
@@ -382,7 +397,7 @@ void manyMallocFree_test(void)
 	printf("Finish many free test.\n");
 }
 
-void Pareto_Pareto_find_test(void)
+void Pareto_find_test(void)
 {
 
 }
