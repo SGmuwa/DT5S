@@ -62,3 +62,5 @@ dkms.conf
 *.suo
 *.log
 *.enc
+*.iobj
+*.ipdb

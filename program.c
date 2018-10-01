@@ -34,15 +34,18 @@ typedef struct {
 
 int Pareto_write(const Pareto_strValueTable input)
 {
+	
 	for (size_t i = 0; i < input.countColumns; i++)
-		printf("%s\t|", input.titles[i].str);
+	{
+		printf("%s;\t", input.titles[i].str);
+	}
 	printf("\n");
 	for (size_t i = 0; i < input.countLines; i++)
 	{
-		printf("%s\t|", input.lines[i].name.str);
+		printf("%s;\t", input.lines[i].name.str);
 		for (size_t j = 0; j < input.countColumns; j++)
 		{
-			printf("%f\t|", input.lines[i].columns[j]);
+			printf("%f;\t", input.lines[i].columns[j]);
 		}
 		printf("\n");
 	}
@@ -92,7 +95,7 @@ byte Pareto_isFirstBetter(size_t indexFirst, size_t indexSecond, const Pareto_st
 }
 
 // Реализовать программу, которая ищет множество Парето
-Pareto_strValueTable Pareto_find(const Pareto_strValueTable input)
+Pareto_strValueTable Pareto_findMalloc(const Pareto_strValueTable input)
 {
 	// Поиск проигравших.
 
@@ -182,7 +185,7 @@ Pareto_strValueTable Pareto_find(const Pareto_strValueTable input)
 	}
 
 	for (size_t i = out.countColumns; --i != ~(size_t)0;)
-		memcpy_s(out.titles + i, maxCountStr, input.titles + i, input.titles[i].length);
+		memcpy_s(out.titles[i].str, out.titles[i].length, input.titles[i].str, input.titles[i].length);
 
 	memcpy_s(out.flags, out.countColumns*sizeof(*out.flags), input.flags, input.countColumns*sizeof(*input.flags));
 	
@@ -344,8 +347,48 @@ int Pareto_intilizalTableMalloc(Pareto_strValueTable * out, size_t countLines, s
 // 3 - не хватило памяти для создания поля имени. Память очищается.
 int Pareto_intilizalDefaultTableMalloc(Pareto_strValueTable * output)
 {
-	return Pareto_intilizalTableMalloc(output, 10, 5, 32);
+	int err = Pareto_intilizalTableMalloc(output, 10, 5, 32);
+	if (err != 0) return err;
+	
+	memcpy(output->titles[0].str, "The weight -", output->titles[0].length);
+	memcpy(output->titles[1].str, "Growth -    ", output->titles[1].length);
+	memcpy(output->titles[2].str, "Diseases -  ", output->titles[2].length);
+	memcpy(output->titles[3].str, "Salary +    ", output->titles[3].length);
+	memcpy(output->titles[4].str, "Languages + ", output->titles[4].length);
+
+	output->flags[0] = 0;
+	output->flags[1] = 0;
+	output->flags[2] = 0;
+	output->flags[3] = 1;
+	output->flags[4] = 1;
+
+	memcpy(output->lines[0].name.str, "Alyona ", output->lines[0].name.length);
+	memcpy(output->lines[1].name.str, "Elena  ", output->lines[1].name.length);
+	memcpy(output->lines[2].name.str, "My cat ", output->lines[2].name.length);
+	memcpy(output->lines[3].name.str, "Peter  ", output->lines[3].name.length);
+	memcpy(output->lines[4].name.str, "Irina  ", output->lines[4].name.length);
+	memcpy(output->lines[5].name.str, "Mama   ", output->lines[5].name.length);
+	memcpy(output->lines[6].name.str, "Natasha", output->lines[6].name.length);
+	memcpy(output->lines[7].name.str, "Galina ", output->lines[7].name.length);
+	memcpy(output->lines[8].name.str, "Olga   ", output->lines[8].name.length);
+	memcpy(output->lines[9].name.str, "Zinaida", output->lines[9].name.length);
+
+	
+
+	memcpy_s(output->lines[0].columns, sizeof(*output->lines->columns)*output->countColumns, (double[5]) { 120.0, 175.0, 3.0, 15000.0, 1.0 }, sizeof(double[5]));
+	memcpy_s(output->lines[1].columns, sizeof(*output->lines->columns)*output->countColumns, (double[5]) { 70.0, 160.0, 2.0, 4000.0, 2.0 }, sizeof(double[5]));
+	memcpy_s(output->lines[2].columns, sizeof(*output->lines->columns)*output->countColumns, (double[5]) { 4.0, 20.0, 1.0, -2500.0, 0.0 }, sizeof(double[5]));
+	memcpy_s(output->lines[3].columns, sizeof(*output->lines->columns)*output->countColumns, (double[5]) { 85.0, 185.0, 1.0, 70000.0, 2.0 }, sizeof(double[5]));
+	memcpy_s(output->lines[4].columns, sizeof(*output->lines->columns)*output->countColumns, (double[5]) { 75.0, 172.0, 2.0, 50000.0, 2.0 }, sizeof(double[5]));
+	memcpy_s(output->lines[5].columns, sizeof(*output->lines->columns)*output->countColumns, (double[5]) { 85.0, 170.0, 4.0, 40000.0, 2.0 }, sizeof(double[5]));
+	memcpy_s(output->lines[6].columns, sizeof(*output->lines->columns)*output->countColumns, (double[5]) { 60.0, 180.0, 2.0, 30000.0, 1.0 }, sizeof(double[5]));
+	memcpy_s(output->lines[7].columns, sizeof(*output->lines->columns)*output->countColumns, (double[5]) { 75.0, 152.0, 1.0, 65000.0, 2.0 }, sizeof(double[5]));
+	memcpy_s(output->lines[8].columns, sizeof(*output->lines->columns)*output->countColumns, (double[5]) { 80.0, 151.0, 3.0, 75000.0, 1.0 }, sizeof(double[5]));
+	memcpy_s(output->lines[9].columns, sizeof(*output->lines->columns)*output->countColumns, (double[5]) { 74.0, 174.0, 2.0, 23000.0, 2.0 }, sizeof(double[5]));
+
+	return 0;
 }
+
 
 void Pareto_intilizalTableMalloc_free_test(void)
 {
@@ -467,7 +510,7 @@ void Pareto_find_test(void)
 	Pareto_strValueTable tst; // test
 	if (Pareto_intilizalTableMalloc(&tst, 9, 3, 30) != 0)
 	{
-		printf("Pareto malloc error in Pareto_find.");
+		printf("Pareto malloc error in Pareto_findMalloc.");
 		return;
 	}
 
@@ -496,7 +539,7 @@ void Pareto_find_test(void)
 	memcpy_s(tst.lines[8].columns, sizeof(*tst.lines->columns)*tst.countColumns, (double[3]) { 650.0, 35.0, 40.0 }, sizeof(double[3]));
 
 	Pareto_write(tst);
-	Pareto_strValueTable tst2 = Pareto_find(tst);
+	Pareto_strValueTable tst2 = Pareto_findMalloc(tst);
 	Pareto_write(tst2);
 
 	Pareto_destructorTableFree(&tst);
@@ -517,7 +560,20 @@ void z1_test(void)
 
 void z1_interface(void)
 {
+	Pareto_strValueTable table;
+	if (Pareto_intilizalDefaultTableMalloc(&table) != 0)
+	{
+		printf("error to create table.\n");
+		return;
+	}
+	printf("\n------------------------------\n");
+	Pareto_write(table);
+	printf("\n------------------------------\n");
+	Pareto_strValueTable table2 = Pareto_findMalloc(table);
+	Pareto_write(table2);
 
+	Pareto_destructorTableFree(&table);
+	Pareto_destructorTableFree(&table2);
 }
 
 void main()
