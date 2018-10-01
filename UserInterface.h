@@ -1,7 +1,7 @@
 ﻿/*
 Sidorenko, Mikhail Pavlovich ([SG]Muwa)
 Moscow Technological University
-16.05.2018
+01.10.2018
 */
 
 #include <stdio.h>
@@ -318,6 +318,54 @@ int UserInterface_fGetInt(const char * message, FILE * fpIN, FILE * fpOUT)
 	return buffer;
 }
 
+// Спрашивает у пользователя 1 байт информации от 0 включительно до максимально допустимого.
+// const char * message: Сообщение, которое будет выведено перед запросом. Если отправить NULL, сообщение не будет выведено.
+// FILE * fpIN: Поток ввода информации, откуда байт считывается.
+// FILE * fpOUT: Поток вывода информации, куда будет отправлен message.
+// Возвращает: Целое неотрицательное число, которое было получено из потока ввода.
+unsigned char UserInterface_fGetChek(const char * message, unsigned char maxAccess, FILE * fpIN/* = stdin*/, FILE * fpOUT/* = stdout*/)
+{
+	unsigned char buffer = ~(unsigned char)0u;
+	unsigned char tryLimit = 0;
+	if (fpIN == NULL) return 0;
+	while (--tryLimit != 0)
+	{
+		if (fpOUT != NULL && message != NULL)
+#ifdef _MSC_VER
+			fprintf_s(fpOUT, "%s", message);
+#else
+			fprintf(fpOUT, "%s", message);
+#endif // _MSC_VER
+		if (
+#ifdef _MSC_VER
+			fscanf_s(fpIN, "%hhu", &buffer)
+#else
+			fscanf(fpIN, "%hhu", &buffer)
+#endif // _MSC_VER
+			>= 1 // Не совсем уверен, как работает %*s. Поэтому знак >=.
+			&& // Сработает, если компилатор проверяет слева на право выражения. Иначе: будет баг в использовании.
+			buffer <= maxAccess)
+		{
+			break;
+		}
+		if (buffer == ~'\0')
+		{
+#ifdef _MSC_VER
+			fscanf_s(fpIN, "%*s");
+#else
+			fscanf(fpIN, "%*s");
+#endif // _MSC_VER
+		}
+		buffer = ~(unsigned char)0u;
+	}
+#ifdef _MSC_VER
+	fscanf_s(fpIN, "%*c");
+#else
+	fscanf(fpIN, "%*c");
+#endif // _MSC_VER
+	return buffer;
+}
+
 
 // --------------------------- STDIN / STDOUT ---------------------------------------------
 
@@ -390,51 +438,19 @@ unsigned UserInterface_GetUnsignedIntLimit(const char * message, unsigned min, u
 	return buffer;
 }
 
-// Спрашивает у пользователя 1 байт информации от 0 включительно до максимально допустимого.
-// const char * message: Сообщение, которое будет выведено перед запросом. Если отправить NULL, сообщение не будет выведено.
-// FILE * fpIN: Поток ввода информации, откуда байт считывается.
-// FILE * fpOUT: Поток вывода информации, куда будет отправлен message.
-// Возвращает: Целое неотрицательное число, которое было получено из потока ввода.
-unsigned char UserInterface_GetChek(const char * message, unsigned char maxAccess, FILE * fpIN/* = stdin*/, FILE * fpOUT/* = stdout*/)
+// Получает от пользователя unsigned long long int число в допустимом диапазоне.
+// const char * message: сообщение, которое будет выведено перед запросом.
+// unsigned long long min: минимально допустимое число, которое будет возвращено. Если min > max, то будет возвращено min без ожидания ответа пользователя и не печатая message.
+// unsigned long long max: максимально допустимое число, которое будет возвращено.
+// Возвращает: unsigned int от пользователя.
+unsigned long long UserInterface_GetUnsignedLongLongIntLimit(const char * message, unsigned long long min, unsigned long long max)
 {
-	unsigned char buffer = ~(unsigned char)0u;
-	unsigned char tryLimit = 0;
-	if (fpIN == NULL) return 0;
-	while (--tryLimit != 0)
+	if (min > max) return min;
+	unsigned long long int buffer;
+	do
 	{
-		if (fpOUT != NULL && message != NULL)
-#ifdef _MSC_VER
-			fprintf_s(fpOUT, "%s", message);
-#else
-			fprintf(fpOUT, "%s", message);
-#endif // _MSC_VER
-		if (
-#ifdef _MSC_VER
-			fscanf_s(fpIN, "%hhu", &buffer)
-#else
-			fscanf(fpIN, "%hhu", &buffer)
-#endif // _MSC_VER
-			>= 1 // Не совсем уверен, как работает %*s. Поэтому знак >=.
-			&& // Сработает, если компилатор проверяет слева на право выражения. Иначе: будет баг в использовании.
-			buffer <= maxAccess)
-		{
-			break;
-		}
-		if (buffer == ~'\0')
-		{
-#ifdef _MSC_VER
-			fscanf_s(fpIN, "%*s");
-#else
-			fscanf(fpIN, "%*s");
-#endif // _MSC_VER
-		}
-		buffer = ~(unsigned char)0u;
-	}
-#ifdef _MSC_VER
-	fscanf_s(fpIN, "%*c");
-#else
-	fscanf(fpIN, "%*c");
-#endif // _MSC_VER
+		buffer = UserInterface_GetUnsignedLongLongInt(message);
+	} while (buffer < min || buffer > max);
 	return buffer;
 }
 
@@ -464,4 +480,12 @@ FILE * UserInterface_OpenFile(const char * message, const char * mode)
 	(output = fopen(buffer, mode)) != NULL);
 #endif
 	return output;
+}
+
+// Спрашивает у пользователя 1 байт информации от 0 включительно до максимально допустимого.
+// const char * message: Сообщение, которое будет выведено перед запросом. Если отправить NULL, сообщение не будет выведено.
+// Возвращает: Целое неотрицательное число, которое было получено из потока ввода.
+unsigned char UserInterface_GetChek(const char * message, unsigned char maxAccess)
+{
+	return UserInterface_fGetChek(message, maxAccess, stdin, stdout);
 }

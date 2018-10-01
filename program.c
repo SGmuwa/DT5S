@@ -51,165 +51,9 @@ int Pareto_write(const Pareto_strValueTable input)
 	}
 }
 
-// Отвечает на вопрос, кто по Парето лучше?
-// size_t indexFirst - первый представитель.
-// size_t indexSecond - второй представитель.
-// Pareto_strValueTable table - данные из таблицы.
-// Возвращает: 1, если первый лучше второго. 0 - если нельяз сравнить. 2 - второй лучше первого. 255 - ошибка.
-byte Pareto_isFirstBetter(size_t indexFirst, size_t indexSecond, const Pareto_strValueTable table)
-{
-	size_t better[3] = {
-		0, // ничья
-		0, // первый лучше
-		0  // второй лучше
-	};
-	for (size_t i = table.countColumns; --i != ~(size_t)0; )
-	{
-		if (table.lines[indexFirst].columns[i] == table.lines[indexSecond].columns[i])
-			better[0]++; // Если равны, то ничья.
-
-		else if (table.flags[i]) // Стримится к положительным числам.
-		{
-			if (table.lines[indexFirst].columns[i] > table.lines[indexSecond].columns[i])
-				better[1]++;
-			else//if(first.columns[i].numerical <  second.columns[i].numerical)
-				better[2]++;
-		}
-		else // Стримится к отрицательным числам.
-		{
-			if (table.lines[indexFirst].columns[i] < table.lines[indexSecond].columns[i])
-				better[1]++;
-			else//if(first.columns[i].numerical >  second.columns[i].numerical)
-				better[2]++;
-		}
-
-		if (better[1] != 0 && better[2] != 0)
-			return 0;
-	}
-	if (better[1] == 0)
-		return 2;
-	else if (better[2] == 0)
-		return 1;
-	else
-		return 0;
-}
-
-// Реализовать программу, которая ищет множество Парето
-Pareto_strValueTable Pareto_findMalloc(const Pareto_strValueTable input)
-{
-	// Поиск проигравших.
-
-	size_t * loosers = (size_t *) malloc(sizeof(size_t) * input.countLines); // лист лузеров.
-	if (loosers == NULL)
-		return (Pareto_strValueTable){ NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
-	for (size_t i = input.countLines; --i != ~(size_t)0;)
-		loosers[i] = ~(size_t)0;
-	size_t loo_idx = 0; // идентификатор листа лузеров
-	byte change;
-	for (size_t x = input.countLines; --x != 0;)
-		for (size_t y = x - 1; --y != ~(size_t)0;)
-		{
-			change = Pareto_isFirstBetter(x, y, input);
-			if (change == 255)
-			{
-				free(loosers);
-				return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 };
-			}
-			if (change != 0)
-				loosers[loo_idx++] = change == 1 ? y : x;
-		}
-
-	// Удаление одинаковых чисел из loosers.
-	for (size_t i = input.countLines; --i != 0;)
-		if (loosers[i] == ~(size_t)0)
-			continue;
-		else for (size_t j = i; --j != ~(size_t)0;)
-			if (loosers[i] == loosers[j])
-				loosers[i] = ~(size_t)0;
-
-	size_t countLoosers = 0; // Количество найденных
-
-	for (size_t i = input.countLines; --i != ~(size_t)0;)
-		if (loosers[i] != ~(size_t)0)
-			countLoosers++;
-
-	Pareto_strValueTable out =
-	{
-		NULL, // Указатель на заголовки таблицы.
-		NULL, // Представляет собой строку с именем экземпляра и его значениями.
-		NULL, // Указатель на массив флагов. Если 0 - значит, лучше отрицательное значение. Если 1 - лучше положительные значения.
-		0,	  // Количество экземпляров в таблице.
-		0	  // Количество критериев экземпляров в таблице.
-	};
-
-	size_t countMaybeWinners = input.countLines - countLoosers;
-	size_t * maybeWinners = (size_t *) malloc(countMaybeWinners * sizeof(size_t));
-
-	if (maybeWinners == NULL)
-	{
-		free(loosers);
-		return out;
-	}
-
-	for (size_t i = 0, iMay = 0; i < input.countLines; i++)
-	{
-		size_t j = input.countLines;
-		while(--j != ~(size_t)0)
-			if (loosers[j] == i) // Лузер найден!
-			{
-				// Надо не дать лузеру дойти до входа!
-				break;
-			}
-		if (j == ~(size_t)0)
-			maybeWinners[iMay++] = i;
-	}
-
-	free(loosers);
-
-	// Копирование заголовков.
-
-	size_t maxCountStr = input.titles[0].length; // Количество необходимых символов.
-	size_t countStr = input.titles[0].length; // Сумма всех символов.
-	
-	for (size_t i = input.countColumns; --i != 0;)
-	{
-		countStr += input.titles[i].length;
-		if (maxCountStr < input.titles[i].length)
-			maxCountStr = input.titles[i].length;
-	}
-
-	if (Pareto_intilizalTableMalloc(&out, countMaybeWinners, input.countColumns, maxCountStr) != 0)
-	{
-		free(maybeWinners);
-		return out;
-	}
-
-	for (size_t i = out.countColumns; --i != ~(size_t)0;)
-		memcpy_s(out.titles[i].str, out.titles[i].length, input.titles[i].str, input.titles[i].length);
-
-	memcpy_s(out.flags, out.countColumns*sizeof(*out.flags), input.flags, input.countColumns*sizeof(*input.flags));
-	
-	// Сформировать список из победителей или нейтралов.
-
-	for (size_t i = out.countLines; --i != ~(size_t)0;)
-	{
-		for (size_t j = out.countColumns; --j != ~(size_t)0;)
-			out.lines[i].columns[j] = input.lines[maybeWinners[i]].columns[j];
-		memcpy_s(out.lines[i].name.str, out.lines[i].name.length, input.lines[maybeWinners[i]].name.str, input.lines[maybeWinners[i]].name.length);		
-	}
-	free(maybeWinners);
-	return out;
-}
-
-// Реализует субоптимизацию Парето.
-Pareto_strValueTable Pareto_optiMalloc(const Pareto_strValueTable input, size_t idMain, double border)
-{
-
-}
-
 // Удаление определённых линий.
 // const Pareto_strValueTable input - Источник строк.
-// const size_t * deleteIds - Список индентификаторов, которые должны быть удалены. Могут повторяться. Значения в массиве ~(size_t)0 будут игнорироваться.
+// const size_t * deleteIds - Список индентификаторов, которые должны быть удалены. Повторы разрешены. Значения в массиве ~(size_t)0 будут игнорироваться.
 // size_t lengthIds - Количество идентификаторов.
 Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, const size_t * deleteIds, size_t lengthIds)
 {
@@ -217,11 +61,11 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 		return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
 
 
-	size_t * ids = (size_t*)malloc(lengthIds*sizeof(*ids));
+	size_t * ids = (size_t*)malloc(lengthIds * sizeof(*ids));
 
-	if(ids == NULL)
+	if (ids == NULL)
 		return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
-	
+
 	memcpy_s(ids, lengthIds * sizeof(*ids), deleteIds, lengthIds * sizeof(*deleteIds));
 
 	// Удаление одинаковых чисел из ids.
@@ -305,6 +149,113 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 	free(maybeWinners);
 	return out;
 }
+
+// Отвечает на вопрос, кто по Парето лучше?
+// size_t indexFirst - первый представитель.
+// size_t indexSecond - второй представитель.
+// Pareto_strValueTable table - данные из таблицы.
+// Возвращает: 1, если первый лучше второго. 0 - если нельяз сравнить. 2 - второй лучше первого. 255 - ошибка.
+byte Pareto_isFirstBetter(size_t indexFirst, size_t indexSecond, const Pareto_strValueTable table)
+{
+	size_t better[3] = {
+		0, // ничья
+		0, // первый лучше
+		0  // второй лучше
+	};
+	for (size_t i = table.countColumns; --i != ~(size_t)0; )
+	{
+		if (table.lines[indexFirst].columns[i] == table.lines[indexSecond].columns[i])
+			better[0]++; // Если равны, то ничья.
+
+		else if (table.flags[i]) // Стримится к положительным числам.
+		{
+			if (table.lines[indexFirst].columns[i] > table.lines[indexSecond].columns[i])
+				better[1]++;
+			else//if(first.columns[i].numerical <  second.columns[i].numerical)
+				better[2]++;
+		}
+		else // Стримится к отрицательным числам.
+		{
+			if (table.lines[indexFirst].columns[i] < table.lines[indexSecond].columns[i])
+				better[1]++;
+			else//if(first.columns[i].numerical >  second.columns[i].numerical)
+				better[2]++;
+		}
+
+		if (better[1] != 0 && better[2] != 0)
+			return 0;
+	}
+	if (better[1] == 0)
+		return 2;
+	else if (better[2] == 0)
+		return 1;
+	else
+		return 0;
+}
+
+// Реализовать программу, которая ищет множество Парето
+Pareto_strValueTable Pareto_findMalloc(const Pareto_strValueTable input)
+{
+	// Поиск проигравших.
+
+	size_t * loosers = (size_t *) malloc(sizeof(size_t) * input.countLines); // лист лузеров.
+	if (loosers == NULL)
+		return (Pareto_strValueTable){ NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
+	for (size_t i = input.countLines; --i != ~(size_t)0;)
+		loosers[i] = ~(size_t)0;
+	size_t loo_idx = 0; // идентификатор листа лузеров
+	byte change;
+	for (size_t x = input.countLines; --x != 0;)
+		for (size_t y = x - 1; --y != ~(size_t)0;)
+		{
+			change = Pareto_isFirstBetter(x, y, input);
+			if (change == 255)
+			{
+				free(loosers);
+				return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 };
+			}
+			if (change != 0)
+				loosers[loo_idx++] = change == 1 ? y : x;
+		}
+
+	Pareto_strValueTable out = Pareto_deleteLinesMalloc(input, loosers, loo_idx);
+
+	free(loosers);
+
+	return out;
+}
+
+// Реализует субоптимизацию Парето.
+// const Pareto_strValueTable input - Данные.
+// size_t idMain - Идентификатор главного критерия.
+// double border - Крайнее значение, которое может сществовать.
+// Возвращает новый экземпляр таблицы без элементов, которые не подходят границе border по критерию idMain.
+Pareto_strValueTable Pareto_optiMalloc(const Pareto_strValueTable input, size_t idMain, double border)
+{
+
+	if(idMain >= input.countColumns || input.lines == NULL || input.flags == NULL)
+		return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 };
+
+
+	size_t * loosers = (size_t *)malloc(sizeof(size_t) * input.countLines); // лист лузеров.
+	if (loosers == NULL)
+		return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
+	for (size_t i = input.countLines; --i != ~(size_t)0;)
+		loosers[i] = ~(size_t)0;
+	size_t loo_idx = 0; // идентификатор листа лузеров
+
+
+	for (size_t i = input.countLines; --i != ~(size_t)0;)
+		if ((input.lines[i].columns == NULL) ||
+			(input.flags[idMain] && input.lines[i].columns[idMain] < border) ||
+			(!input.flags[idMain] && input.lines[i].columns[idMain] > border))
+			loosers[loo_idx++] = i;
+
+	Pareto_strValueTable out = Pareto_deleteLinesMalloc(input, loosers, loo_idx);
+	free(loosers);
+	return out;
+}
+
 
 // Освобождает из памяти таблицу.
 // strValueTable input - входящая таблица, которую необходимо освободить.
@@ -494,7 +445,6 @@ int Pareto_intilizalDefaultTableMalloc(Pareto_strValueTable * output)
 	return 0;
 }
 
-
 void Pareto_intilizalTableMalloc_free_test(void)
 {
 	printf("Pareto intilizalTableMalloc and free\tStart test...\n");
@@ -598,6 +548,36 @@ void Pareto_manyintilizalTableMalloc_free_test(void)
 	printf("Finish manny Pareto test.\n");
 }
 
+string Pareto_getListNamesMalloc(const Pareto_strValueTable input)
+{
+	string out = {NULL, 0};
+	for (size_t i = input.countLines; --i != ~(size_t)0;)
+		out.length += input.lines[i].name.length;
+	out.str = malloc(out.length * sizeof(*out.str));
+	if (out.str == NULL)
+		return out;
+	out.str[0] = 0;
+	for(size_t i = 0; i < input.countLines; i++)
+		sprintf_s(out.str, out.length, "%s%llu)%s\n", out.str, out.length, (unsigned long long)i, input.lines[i].name.str, input.lines[i].name.length);
+	
+	return out;
+}
+
+string Pareto_getListTitlesMalloc(const Pareto_strValueTable input)
+{
+	string out = { NULL, 0 };
+	for (size_t i = input.countColumns; --i != ~(size_t)0;)
+		out.length += input.titles[i].length;
+	out.str = malloc(out.length * sizeof(*out.str));
+	if (out.str == NULL)
+		return out;
+	out.str[0] = 0;
+	for (size_t i = 0; i < input.countColumns; i++)
+		sprintf_s(out.str, out.length, "%s%llu)%s\n", out.str, out.length, (unsigned long long)i, input.titles[i].str, input.titles[i].length);
+
+	return out;
+}
+
 void manyMallocFree_test(void)
 {
 	printf("Start many malloc test...\n");
@@ -675,10 +655,24 @@ void z1_interface(void)
 	Pareto_write(table);
 	printf("\n------------------------------\n");
 	Pareto_strValueTable table2 = Pareto_findMalloc(table);
+	Pareto_destructorTableFree(&table);
 	Pareto_write(table2);
 
-	Pareto_destructorTableFree(&table);
+	string titles = Pareto_getListTitlesMalloc(table2);
+	printf("main?\n");
+	size_t chekByUser = ~(size_t)0;
+	if (table2.countColumns < (unsigned char)~(unsigned char)0)
+		chekByUser = UserInterface_GetChek(titles.str, (unsigned char)table2.countColumns, stdin, stdout);
+	else
+		chekByUser = UserInterface_GetUnsignedLongLongIntLimit(titles.str, 0, table2.countColumns - 1);
+	
+	free(titles.str); titles.str = NULL; titles.length = 0;
+
+	Pareto_strValueTable table3 = Pareto_optiMalloc(table2, chekByUser, UserInterface_GetFloat("border = "));
 	Pareto_destructorTableFree(&table2);
+	Pareto_write(table3);
+	Pareto_destructorTableFree(&table3);
+
 }
 
 void main()
