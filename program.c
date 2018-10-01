@@ -201,6 +201,118 @@ Pareto_strValueTable Pareto_findMalloc(const Pareto_strValueTable input)
 	return out;
 }
 
+// Реализует субоптимизацию Парето.
+Pareto_strValueTable Pareto_optiMalloc(const Pareto_strValueTable input, size_t idMain, double border)
+{
+
+}
+
+Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, size_t * ids, size_t countIds)
+{
+	if (ids == NULL || countIds == 0)
+		return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
+	size_t loo_idx = 0; // идентификатор листа лузеров
+	byte change;
+	for (size_t x = input.countLines; --x != 0;)
+		for (size_t y = x - 1; --y != ~(size_t)0;)
+		{
+			change = Pareto_isFirstBetter(x, y, input);
+			if (change == 255)
+			{
+				free(ids);
+				return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 };
+			}
+			if (change != 0)
+				ids[loo_idx++] = change == 1 ? y : x;
+		}
+
+	// Удаление одинаковых чисел из ids.
+	for (size_t i = input.countLines; --i != 0;)
+		if (ids[i] == ~(size_t)0)
+			continue;
+		else for (size_t j = i; --j != ~(size_t)0;)
+			if (ids[i] == ids[j])
+				ids[i] = ~(size_t)0;
+
+	size_t countids = 0; // Количество найденных
+
+	for (size_t i = input.countLines; --i != ~(size_t)0;)
+		if (ids[i] != ~(size_t)0)
+			countids++;
+
+	Pareto_strValueTable out =
+	{
+		NULL, // Указатель на заголовки таблицы.
+		NULL, // Представляет собой строку с именем экземпляра и его значениями.
+		NULL, // Указатель на массив флагов. Если 0 - значит, лучше отрицательное значение. Если 1 - лучше положительные значения.
+		0,	  // Количество экземпляров в таблице.
+		0	  // Количество критериев экземпляров в таблице.
+	};
+
+	size_t countMaybeWinners = input.countLines - countids;
+	size_t * maybeWinners = (size_t *)malloc(countMaybeWinners * sizeof(size_t));
+
+	if (maybeWinners == NULL)
+	{
+		free(ids);
+		return out;
+	}
+
+	for (size_t i = 0, iMay = 0; i < input.countLines; i++)
+	{
+		size_t j = input.countLines;
+		while (--j != ~(size_t)0)
+			if (ids[j] == i) // Лузер найден!
+			{
+				// Надо не дать лузеру дойти до входа!
+				break;
+			}
+		if (j == ~(size_t)0)
+			maybeWinners[iMay++] = i;
+	}
+
+	free(ids);
+
+	// Копирование заголовков.
+
+	size_t maxCountStr = input.titles[0].length; // Количество необходимых символов.
+	size_t countStr = input.titles[0].length; // Сумма всех символов.
+
+	for (size_t i = input.countColumns; --i != 0;)
+	{
+		countStr += input.titles[i].length;
+		if (maxCountStr < input.titles[i].length)
+			maxCountStr = input.titles[i].length;
+	}
+
+	if (Pareto_intilizalTableMalloc(&out, countMaybeWinners, input.countColumns, maxCountStr) != 0)
+	{
+		free(maybeWinners);
+		return out;
+	}
+
+	for (size_t i = out.countColumns; --i != ~(size_t)0;)
+		memcpy_s(out.titles[i].str, out.titles[i].length, input.titles[i].str, input.titles[i].length);
+
+	memcpy_s(out.flags, out.countColumns * sizeof(*out.flags), input.flags, input.countColumns * sizeof(*input.flags));
+
+	// Сформировать список из победителей или нейтралов.
+
+	for (size_t i = out.countLines; --i != ~(size_t)0;)
+	{
+		for (size_t j = out.countColumns; --j != ~(size_t)0;)
+			out.lines[i].columns[j] = input.lines[maybeWinners[i]].columns[j];
+		memcpy_s(out.lines[i].name.str, out.lines[i].name.length, input.lines[maybeWinners[i]].name.str, input.lines[maybeWinners[i]].name.length);
+	}
+	free(maybeWinners);
+	return out;
+}
+
+int Pareto_getFindRepetitions()
+{
+
+}
+
 // Освобождает из памяти таблицу.
 // strValueTable input - входящая таблица, которую необходимо освободить.
 // Возвращает: код ошибки.
