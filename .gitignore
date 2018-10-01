@@ -61,3 +61,4 @@ dkms.conf
 *unsuccessfulbuild
 *.suo
 *.log
+*.enc
