@@ -207,27 +207,25 @@ Pareto_strValueTable Pareto_optiMalloc(const Pareto_strValueTable input, size_t 
 
 }
 
-Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, size_t * ids, size_t countIds)
+// Удаление определённых линий.
+// const Pareto_strValueTable input - Источник строк.
+// const size_t * deleteIds - Список индентификаторов, которые должны быть удалены. Могут повторяться. Значения в массиве ~(size_t)0 будут игнорироваться.
+// size_t lengthIds - Количество идентификаторов.
+Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, const size_t * deleteIds, size_t lengthIds)
 {
-	if (ids == NULL || countIds == 0)
+	if (deleteIds == NULL || lengthIds == 0)
 		return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
-	size_t loo_idx = 0; // идентификатор листа лузеров
-	byte change;
-	for (size_t x = input.countLines; --x != 0;)
-		for (size_t y = x - 1; --y != ~(size_t)0;)
-		{
-			change = Pareto_isFirstBetter(x, y, input);
-			if (change == 255)
-			{
-				free(ids);
-				return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 };
-			}
-			if (change != 0)
-				ids[loo_idx++] = change == 1 ? y : x;
-		}
+
+
+	size_t * ids = (size_t*)malloc(lengthIds*sizeof(*ids));
+
+	if(ids == NULL)
+		return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
+	
+	memcpy_s(ids, lengthIds * sizeof(*ids), deleteIds, lengthIds * sizeof(*deleteIds));
 
 	// Удаление одинаковых чисел из ids.
-	for (size_t i = input.countLines; --i != 0;)
+	for (size_t i = lengthIds; --i != 0;)
 		if (ids[i] == ~(size_t)0)
 			continue;
 		else for (size_t j = i; --j != ~(size_t)0;)
@@ -236,7 +234,7 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 
 	size_t countids = 0; // Количество найденных
 
-	for (size_t i = input.countLines; --i != ~(size_t)0;)
+	for (size_t i = lengthIds; --i != ~(size_t)0;)
 		if (ids[i] != ~(size_t)0)
 			countids++;
 
@@ -254,13 +252,12 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 
 	if (maybeWinners == NULL)
 	{
-		free(ids);
 		return out;
 	}
 
 	for (size_t i = 0, iMay = 0; i < input.countLines; i++)
 	{
-		size_t j = input.countLines;
+		size_t j = lengthIds;
 		while (--j != ~(size_t)0)
 			if (ids[j] == i) // Лузер найден!
 			{
@@ -272,6 +269,7 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 	}
 
 	free(ids);
+	ids = NULL;
 
 	// Копирование заголовков.
 
@@ -306,11 +304,6 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 	}
 	free(maybeWinners);
 	return out;
-}
-
-int Pareto_getFindRepetitions()
-{
-
 }
 
 // Освобождает из памяти таблицу.
