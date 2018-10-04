@@ -258,10 +258,10 @@ Pareto_strValueTable Pareto_optiMalloc(const Pareto_strValueTable input, size_t 
 
 
 // Освобождает из памяти таблицу.
-// strValueTable input - входящая таблица, которую необходимо освободить.
+// Pareto_strValueTable * input - Указатель на входящую таблицу, которую необходимо освободить.
 // Возвращает: код ошибки.
 // 1 - строки не найдены.
-// 2 - отправлен NULL.
+// 2 - получен input NULL.
 // -n - программа сработала хорошо, но были найдены указатели NULL в количестве n.
 int Pareto_destructorTableFree(Pareto_strValueTable * input)
 {
@@ -276,25 +276,28 @@ int Pareto_destructorTableFree(Pareto_strValueTable * input)
 		{
 			if (input->titles[i].str != NULL)
 				free(input->titles[i].str);
+			else flag++;
 		}
 		free(input->titles);
 	}
+	else flag++;
 	if (input->lines == NULL)
 		return 1;
 	if (input->flags != NULL)
 		free(input->flags);
+	else flag++;
 	for (size_t i = 0; i < input->countLines; i++)
 	{
 		if (input->lines[i].columns != NULL)
 		{
 			free(input->lines[i].columns);
-			flag++;
 		}
+		else flag++;
 		if (input->lines[i].name.str != NULL)
 		{
-			flag++;
 			free(input->lines[i].name.str);
 		}
+		else flag++;
 	}
 	free(input->lines);
 	input->countColumns = 0;
@@ -572,10 +575,16 @@ string Pareto_getListTitlesMalloc(const Pareto_strValueTable input)
 	if (out.str == NULL)
 		return out;
 	out.str[0] = 0;
+	size_t chars = 0;
 	for (size_t i = 0; i < input.countColumns; i++)
-		sprintf_s(out.str, out.length, "%s%llu)%s\n", out.str, out.length, (unsigned long long)i, input.titles[i].str, input.titles[i].length);
+		chars += sprintf_s(out.str + chars, out.length - chars, "%llu)%s\n", (unsigned long long)i, input.titles[i].str);
 
-	return out;
+	// Оптимизация по освобождению ненужной памяти.
+	string outSmall = { malloc((chars + 1) * sizeof(out.str)), chars + 1 };
+	memcpy_s(outSmall.str, outSmall.length, out.str, chars + 1);
+	free(out.str); out.length = 0; out.str = NULL;
+
+	return outSmall;
 }
 
 void manyMallocFree_test(void)
