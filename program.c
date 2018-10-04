@@ -34,7 +34,7 @@ typedef struct {
 
 int Pareto_write(const Pareto_strValueTable input)
 {
-	
+	printf("\t\t");
 	for (size_t i = 0; i < input.countColumns; i++)
 	{
 		printf("%s;\t", input.titles[i].str);
@@ -57,10 +57,6 @@ int Pareto_write(const Pareto_strValueTable input)
 // size_t lengthIds - Количество идентификаторов.
 Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, const size_t * deleteIds, size_t lengthIds)
 {
-	if (deleteIds == NULL || lengthIds == 0)
-		return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
-
-
 	size_t * ids = (size_t*)malloc(lengthIds * sizeof(*ids));
 
 	if (ids == NULL)
@@ -69,7 +65,7 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 	memcpy_s(ids, lengthIds * sizeof(*ids), deleteIds, lengthIds * sizeof(*deleteIds));
 
 	// Удаление одинаковых чисел из ids.
-	for (size_t i = lengthIds; --i != 0;)
+	if(lengthIds != 0) for (size_t i = lengthIds; --i != 0;)
 		if (ids[i] == ~(size_t)0)
 			continue;
 		else for (size_t j = i; --j != ~(size_t)0;)
@@ -668,20 +664,21 @@ void z1_interface(void)
 	Pareto_write(table2);
 
 	string titles = Pareto_getListTitlesMalloc(table2);
-	printf("main?\n");
-	size_t chekByUser = ~(size_t)0;
-	if (table2.countColumns < (unsigned char)~(unsigned char)0)
-		chekByUser = UserInterface_GetChek(titles.str, (unsigned char)table2.countColumns, stdin, stdout);
-	else
-		chekByUser = UserInterface_GetUnsignedLongLongIntLimit(titles.str, 0, table2.countColumns - 1);
-	
-	free(titles.str); titles.str = NULL; titles.length = 0;
+	do {
+		printf("main?\n");
+		size_t chekByUser = ~(size_t)0;
+		if (table2.countColumns < (unsigned char)~(unsigned char)0)
+			chekByUser = UserInterface_GetChek(titles.str, (unsigned char)table2.countColumns, stdin, stdout);
+		else
+			chekByUser = UserInterface_GetUnsignedLongLongIntLimit(titles.str, 0, table2.countColumns - 1);
 
-	Pareto_strValueTable table3 = Pareto_optiMalloc(table2, chekByUser, UserInterface_GetFloat("border = "));
+		Pareto_strValueTable table3 = Pareto_optiMalloc(table2, chekByUser, UserInterface_GetFloat("border = "));
+		Pareto_destructorTableFree(&table2);
+		Pareto_write(table3);
+		table2 = table3;
+	} while (UserInterface_GetChek("Continue?\n0) No\n1) Yes\n", 1));
 	Pareto_destructorTableFree(&table2);
-	Pareto_write(table3);
-	Pareto_destructorTableFree(&table3);
-
+	free(titles.str); titles.str = NULL; titles.length = 0;
 }
 
 void main()
