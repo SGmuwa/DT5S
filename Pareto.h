@@ -6,19 +6,7 @@
 #ifndef _INC_STDIO
 #include <stdio.h>
 #endif // !_INC_STDIO
-#ifndef _INC_STRING
-#include <string.h>
-#endif // !_INC_STRING
-
-
-
-typedef unsigned char byte;
-
-// Структура обозначает массив строк.
-typedef struct {
-	char * str; // Указатель на первый символ строки.
-	size_t length; // Количество доступных символов.
-} string;
+#include "String.h"
 
 // Символизирует строку таблицы: название экземпляра и указатель на начало его параметров.
 typedef struct {
@@ -30,7 +18,7 @@ typedef struct {
 typedef struct {
 	string * titles;			// Указатель на заголовки таблицы.
 	Pareto_strValues * lines;	// Представляет собой строку с именем экземпляра и его значениями.
-	byte * flags;				// Указатель на массив флагов. Если 0 - значит, лучше отрицательное значение. Если 1 - лучше положительные значения.
+	unsigned char * flags;		// Указатель на массив флагов. Если 0 - значит, лучше отрицательное значение. Если 1 - лучше положительные значения.
 	size_t countLines;			// Количество экземпляров в таблице.
 	size_t countColumns;		// Количество критериев экземпляров в таблице.
 } Pareto_strValueTable;
@@ -154,7 +142,7 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 // size_t indexSecond - второй представитель.
 // Pareto_strValueTable table - данные из таблицы.
 // Возвращает: 1, если первый лучше второго. 0 - если нельяз сравнить. 2 - второй лучше первого. 255 - ошибка.
-byte Pareto_isFirstBetter(size_t indexFirst, size_t indexSecond, const Pareto_strValueTable table)
+unsigned char Pareto_isFirstBetter(size_t indexFirst, size_t indexSecond, const Pareto_strValueTable table)
 {
 	size_t better[3] = {
 		0, // ничья
@@ -203,7 +191,7 @@ Pareto_strValueTable Pareto_findMalloc(const Pareto_strValueTable input)
 	for (size_t i = input.countLines; --i != ~(size_t)0;)
 		loosers[i] = ~(size_t)0;
 	size_t loo_idx = 0; // идентификатор листа лузеров
-	byte change;
+	unsigned char change;
 	for (size_t x = input.countLines; --x != 0;)
 		for (size_t y = x - 1; --y != ~(size_t)0;)
 		{
