@@ -25,6 +25,23 @@ string String_intilizalStringMalloc(size_t length)
 	return output;
 }
 
+string String_CopyFromCharMalloc(const char * input)
+{
+	if (input == NULL)
+		return (string){ NULL, 0 };
+	size_t len = strlen(input);
+	string output = {
+		malloc(len*sizeof(char)),
+		len
+	};
+	#ifdef _MSC_VER
+		memcpy_s(output.str, output.length, input, len);
+	#else
+		memcpy(output.str, input, len);
+	#endif
+	return output;
+}
+
 wstring String_intilizalWstringMalloc(size_t length)
 {
 	wstring output = {

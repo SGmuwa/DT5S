@@ -6,23 +6,16 @@
 #include "String.h"
 #include "UserInterface.h"
 
-// Символизирует строку таблицы: название экземпляра и указатель на начало его параметров.
-typedef struct {
-	string name;						// Имя экземпляра.
-	Electra_key ** columns;				// Массив указателей на значения, символизирующие из себя имя значения и его численное представление.
-	size_t const * const countColumns;	// Указатель на Electra_strValueTable.countColumns (количество критериев). 
-} Electra_strValues;
+
+
+#pragma region Критерии
+
+extern struct Electra_key;
 
 typedef struct {
-	string name;	// Именное значение ключа.
-	double value;	// Численное значение ключа.
-} Electra_key;
-
-typedef struct {
-	Electra_key * keys;	// Ключи.
+	struct Electra_key * keys;	// Ключи.
 	size_t length;		// Количество ключей.
 } Electra_scale; // Шкала Электра
-
 typedef struct {
 	// Название критерия.
 	string name;
@@ -32,18 +25,9 @@ typedef struct {
 	Electra_scale scale_keys;
 	// Истина, если считается чем больше значение по этому критерию, тем лучше.
 	unsigned char isToMax;
-} Electra_criterion;
+} Electra_criterion; // Один критерий Электра
 
-// Структура, которая хранит в себе указатель на начало списка экземпляров, количество строк и количество столбцов.
-typedef struct {
-	Electra_criterion * criteria;	// Указатель на критерии таблицы.
-	size_t countColumns;			// Количество критериев экземпляров в таблице.
-
-	Electra_strValues * lines;		// Представляет собой строку с именем экземпляра и его значениями.
-	size_t countLines;				// Количество экземпляров в таблице.
-} Electra_strValueTable;
-
-// Функция инцилизации скритериев таблицы Электра.
+// Функция инцилизации критериев таблицы Электра.
 // Electra_criterion * out - Указатель на критерии Электра, доступные для записи.
 // size_t countColumns - Количество критериев.
 // size_t countCharsCriterion - Количество символов для названий критериев.
@@ -88,14 +72,13 @@ int Electra_intilizalCriterionsMalloc(Electra_criterion * out, size_t countColum
 	}
 	return 0;
 }
-
 // Добавляет к существующей шкале ключ.
 // Electra_scale * edit - Указатель на шкалу, к которой необходимо добавить ключ.
 // Electra_key newKey - Ключ, который необходимо добавить к шкале.
 // Возвращает код ошибки.
 // 1 - Отправлен edit NULL.
 // 2 - Неудалось выделить дополнительную память.
-int Electra_addKey(Electra_scale * edit, Electra_key newKey)
+int Electra_addKeyMalloc(Electra_scale * edit, Electra_key newKey)
 {
 	if (edit == NULL)
 		return 1;
@@ -104,7 +87,10 @@ int Electra_addKey(Electra_scale * edit, Electra_key newKey)
 		edit->keys = (Electra_key*)malloc(1 * sizeof(Electra_key));
 		edit->length = 1;
 		if (edit->keys == NULL)
+		{
+			edit->length = 0;
 			return 2;
+		}
 	}
 	else
 	{
@@ -118,32 +104,155 @@ int Electra_addKey(Electra_scale * edit, Electra_key newKey)
 	return 0;
 }
 
+#pragma endregion
+
+#pragma region Экземпляры (строки) - структуры
+
+typedef struct Electra_key {
+	string name;	// Именное значение ключа.
+	double value;	// Численное значение ключа.
+} Electra_key;
+
+// Символизирует строку таблицы: название экземпляра и указатель на начало его параметров.
+typedef struct {
+	string name;						// Имя экземпляра.
+	const Electra_key ** columns;		// Массив указателей на значения, символизирующие из себя имя значения и его численное представление.
+	const size_t * countColumns;	// Указатель на Electra_strValueTable.countColumns (количество критериев). 
+} Electra_strValues;
+
+#pragma endregion
+
+#pragma region Таблица
+
+// Структура, которая хранит в себе указатель на начало списка экземпляров, количество строк и количество столбцов.
+typedef struct {
+	Electra_criterion * const criteria;	// Указатель на критерии таблицы.
+	size_t const countColumns;			// Количество критериев экземпляров в таблице.
+
+	Electra_strValues * lines;			// Представляет собой строку с именем экземпляра и его значениями.
+	size_t countLines;					// Количество экземпляров в таблице.
+} Electra_strValueTable;
+
 // Создаёт экземпляр в оперативной памяти для таблицы Электра.
 // output - указатель, куда надо поместить результат.
-// countLines - количество экземпляров.
 // countColumns - количество критериев.
 // countCharsCriterion - количество символов, выделяемые для критериев и ключей
-// countCharsValues - количество символов, выделяемые для экземпляров.
-// Возвращает: код ошибки. В случае ошибки память очищается, а output не изменяется.
+// int * err - указатель, куда поместить код ошибки. В случае ошибки память очищается, а output не изменяется.
 // 1 - Не хватило памяти для первичной инцилизации.
 // 2 - Не верны входные данные.
-int Electra_intilizalTableMalloc(Electra_strValueTable * output, size_t countLines, size_t countColumns, size_t countCharsCriterion, size_t countCharsValues)
+// 3 - Ошибка в Electra_intilizalCriterionsMalloc
+// Возвращает: экземпляр таблицы Электра.
+Electra_strValueTable Electra_intilizalTableMalloc(size_t countColumns, size_t countCharsCriterion, int * errOut)
 {
-	if (output == NULL)
-		return 2;
 	Electra_strValueTable out = {
 		(Electra_criterion*)malloc(sizeof(Electra_criterion)*countColumns),
 		countColumns,
-		(Electra_strValues*)malloc(sizeof(Electra_strValues)*countLines),
-		countLines
+		(Electra_strValues*)malloc(sizeof(Electra_strValues) * 0),
+		0
 	};
-	if (out.criteria == NULL || out.lines == NULL)
+	if (out.criteria == NULL)
 	{
 		if (out.criteria != NULL)
 			free(out.criteria);
 		if (out.lines != NULL)
 			free(out.lines);
-		return 1;
+		if (errOut != NULL)
+			*errOut = 1;
+		return { 0 };
 	}
-	// TODO: доделать.
+	int err = Electra_intilizalCriterionsMalloc(out.criteria, out.countColumns, countCharsCriterion);
+	if (err != 0)
+	{
+		free(out.lines);
+		free(out.criteria);
+		if (errOut != NULL)
+			*errOut = 3;
+		return { 0 };
+	}
+	return out;
 }
+
+// Добавление строки в таблицу. 
+int Electra_addMalloc(Electra_strValueTable * edit, string name, Electra_key ** const columns)
+{
+	if (edit == NULL)
+		return 1;
+	if (edit->lines == NULL)
+	{
+		edit->lines = (Electra_strValues*)malloc(1 * sizeof(Electra_strValues));
+		edit->countLines = 1;
+		if (edit->lines == NULL)
+		{
+			edit->countLines = 0;
+			return 2;
+		}
+	}
+	else
+	{
+		Electra_strValues * newLines = (Electra_strValues *)realloc(edit->lines, (edit->countLines + 1) * sizeof(Electra_strValues));
+		if (newLines == NULL)
+			return 2;
+		edit->lines = newLines;
+		edit->countLines++;
+	}
+	edit->lines[edit->countLines - 1] = { name, columns, &edit->countColumns };
+}
+
+#pragma region Консольный интерфейс таблицы
+
+// Возвращает: код ошибки.
+// 1 - Не хватило памяти для массива критериев.
+// 2 - Не удалось добавить строку в таблицу.
+int Electra_UAddMalloc(Electra_strValueTable * edit)
+{
+	// Нужна память на список колонок.
+	Electra_key ** columns = (Electra_key **)malloc(edit->countColumns * sizeof(Electra_key*));
+	if (columns == NULL)
+		return 1;
+
+	// Нужно назвать экземпляр.
+	char nameBuffer[1024 * 10];
+	string lineName = {NULL, 0};
+	do {
+		lineName.length = UserInterface_GetStr("name for new line: ", nameBuffer, sizeof(nameBuffer));
+		lineName.str = (char*)malloc(lineName.length * sizeof(char));
+	} while (lineName.str == NULL); 
+
+	// Нужно присвоить колонкам значения.
+	for (size_t i = edit->countColumns; --i != ~(size_t)0; )
+	{
+		printf(edit->criteria[i].isToMax ? "max\n" : "min\n"); // Вывести направление.
+		printf("criterion: %s, %lf\n", edit->criteria[i].name.str, edit->criteria[i].weight);
+		for (size_t j = edit->criteria[i].scale_keys.length; --j != ~(size_t)0; )
+		{
+			printf("[key %llu] v: %lf, n: %s\n", (long long unsigned)j, edit->criteria[i].scale_keys.keys[j].value, edit->criteria[i].scale_keys.keys[j].name);
+		}
+		size_t select = UserInterface_GetUnsignedLongLongIntLimit("Select key: ", 0, edit->criteria[i].scale_keys.length - 1);
+		columns[i] = &edit->criteria[i].scale_keys.keys[select];
+	}
+
+	if (Electra_addMalloc(edit, lineName, columns) != 0)
+	{
+		free(columns);
+		String_destructorFree(lineName);
+		return 2;
+	}
+	return 0;
+}
+
+Electra_strValueTable Electra_getDefault() {
+	int err;
+	Electra_strValueTable out = Electra_intilizalTableMalloc(5, 13, &err);
+	if (err != 0)
+		return out;
+
+	out.criteria[0] = { String_CopyFromCharMalloc("The weight"), 1, {NULL, 0}, 0 };
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Hight"), 5 });
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Might"), 3 });
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Easy"), 1 });
+	// TODO
+}
+
+#pragma endregion
+
+#pragma endregion
