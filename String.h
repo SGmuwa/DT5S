@@ -51,8 +51,9 @@ wstring String_intilizalWstringMalloc(size_t length)
 	return output;
 }
 
-void String_destructorFree(string str)
+void String_destructorFree(string * str)
 {
-	if(str.str != NULL)
-		free(str.str);
+	if(str != NULL && str->str != NULL)
+		free(str->str);
+	*str = (string){ NULL, 0 };
 }

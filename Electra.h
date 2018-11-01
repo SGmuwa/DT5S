@@ -47,7 +47,7 @@ int Electra_intilizalCriterionsMalloc(Electra_criterion * out, size_t countColum
 		{
 			while (++i != countColumns)
 			{
-				String_destructorFree(out[i].name);
+				String_destructorFree(&out[i].name);
 			}
 			return 2;
 		}
@@ -65,7 +65,7 @@ int Electra_intilizalCriterionsMalloc(Electra_criterion * out, size_t countColum
 			i = -1;
 			while (++i != countColumns)
 			{
-				String_destructorFree(out[i].name);
+				String_destructorFree(&out[i].name);
 			}
 			return 3;
 		}*/
@@ -101,6 +101,28 @@ int Electra_addKeyMalloc(Electra_scale * edit, Electra_key newKey)
 		edit->length++;
 	}
 	edit->keys[edit->length - 1] = newKey;
+	return 0;
+}
+
+// Освобождает память от всех ресурсов, связанной со шкалой.
+// scale - Указатель на шкалу, которую надо освободить.
+// Возвращает: код ошибки.
+int Electra_scaleFree(Electra_scale * scale)
+{
+	if (scale == NULL)
+		return 1;
+	if (scale->keys == NULL)
+	{
+		scale->length = 0;
+		return 0;
+	}
+	for (size_t i = scale->length; --i != ~(size_t)0;)
+	{
+		String_destructorFree(&scale->keys[i].name);
+		scale->keys[i].value = 0;
+	}
+	free(scale->keys);
+	*scale = { NULL, 0 };
 	return 0;
 }
 
@@ -198,6 +220,39 @@ int Electra_addMalloc(Electra_strValueTable * edit, string name, Electra_key ** 
 	edit->lines[edit->countLines - 1] = { name, columns, &edit->countColumns };
 }
 
+// Освобождает оперативную память от критериев и строк таблицы edit. 
+// Стоит отметить, что 
+// Electra_strValueTable * edit - входящая таблица.
+// Возвращает: код ошибки.
+int Electra_free(Electra_strValueTable * edit)
+{
+	if (edit == NULL)
+		return 0;
+	if (edit->lines != NULL)
+	{
+		for (size_t i = edit->countLines; --i != ~(size_t)0;)
+		{
+			if (edit->lines[i].columns != NULL)
+				free(edit->lines[i].columns);
+			String_destructorFree(&edit->lines[i].name);
+		}
+		free(edit->lines);
+	}
+	edit->countLines = 0;
+	if (edit->criteria != NULL)
+	{
+		for (size_t i = edit->countColumns; --i != ~(size_t)0;)
+		{
+			String_destructorFree(&edit->criteria[i].name);
+			edit->criteria[i].isToMax = 0;
+			edit->criteria[i].weight = 0;
+			Electra_scaleFree(&edit->criteria[i].scale_keys);
+		}
+		free(edit->criteria);
+	}
+	return 0;
+}
+
 #pragma region Консольный интерфейс таблицы
 
 // Возвращает: код ошибки.
@@ -234,7 +289,7 @@ int Electra_UAddMalloc(Electra_strValueTable * edit)
 	if (Electra_addMalloc(edit, lineName, columns) != 0)
 	{
 		free(columns);
-		String_destructorFree(lineName);
+		String_destructorFree(&lineName);
 		return 2;
 	}
 	return 0;
@@ -250,6 +305,16 @@ Electra_strValueTable Electra_getDefault() {
 	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Hight"), 5 });
 	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Might"), 3 });
 	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Easy"), 1 });
+	out.criteria[0] = { String_CopyFromCharMalloc("Growth"), 1, {NULL, 0}, 0 };
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Tall"), 5 });
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Middle"), 3 });
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Little"), 1 });
+	out.criteria[0] = { String_CopyFromCharMalloc("Diseases"), 1, {NULL, 0}, 0 };
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Infectious"), 5 });
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Chronic diseases"), 3 });
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Healthy"), 1 });
+	out.criteria[0] = { String_CopyFromCharMalloc("Salary"), 1, {NULL, 0}, 1 };
+	out.criteria[0] = { String_CopyFromCharMalloc("Languages"), 1, {NULL, 0}, 1 };
 	// TODO
 }
 
