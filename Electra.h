@@ -305,15 +305,15 @@ Electra_strValueTable Electra_getDefault() {
 		return out;
 
 	out.criteria[0] = { String_CopyFromCharMalloc("The weight"), 4, {NULL, 0}, 0 };
-	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("???"), 250 }); // Ожирение
-	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("???"), 150 }); // Очень тяжёлая
-	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("???"), 100 }); // Тяжёлая
-	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("???"), 95 }); // Тяжёленькая
-	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("???"), 75 }); // Нормальный вес
-	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("???"), 65 }); // Лёгенькая
-	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("???"), 60 }); // Лёгкая
-	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("???"), 50 }); // Слишком лёгкая
-	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("???"), 45 }); // Угроза здоровью
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Obesity"), 250 }); // Ожирение
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Very heavy"), 150 }); // Очень тяжёлая
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Heavy"), 100 }); // Тяжёлая
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("A bit heavy"), 95 }); // Тяжёленькая
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Normal weight"), 75 }); // Нормальный вес
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Almost light"), 65 }); // Лёгенькая
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Lightweight"), 60 }); // Лёгкая
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Too light weight"), 50 }); // Слишком лёгкая
+	Electra_addKeyMalloc(&out.criteria[0].scale_keys, { String_CopyFromCharMalloc("Health hazard"), 45 }); // Угроза здоровью
 	out.criteria[1] = { String_CopyFromCharMalloc("Growth"), 1, {NULL, 0}, 0 };
 	Electra_addKeyMalloc(&out.criteria[1].scale_keys, { String_CopyFromCharMalloc("Tall"), 200 }); // Высокая
 	Electra_addKeyMalloc(&out.criteria[1].scale_keys, { String_CopyFromCharMalloc("Middle"), 170 }); // Средняя
@@ -329,12 +329,13 @@ Electra_strValueTable Electra_getDefault() {
 	Electra_addKeyMalloc(&out.criteria[3].scale_keys, { String_CopyFromCharMalloc("Saves on equipment"), 50000 }); // Экономит на технику
 	Electra_addKeyMalloc(&out.criteria[3].scale_keys, { String_CopyFromCharMalloc("Eats full"), 30000 }); // Не отказывает себе в питании
 	Electra_addKeyMalloc(&out.criteria[3].scale_keys, { String_CopyFromCharMalloc("Saves on food"), 15000 }); // Экономит на еду
-	Electra_addKeyMalloc(&out.criteria[3].scale_keys, { String_CopyFromCharMalloc("??????"), 5000 }); // Живёт за чужой счёт
-	Electra_addKeyMalloc(&out.criteria[3].scale_keys, { String_CopyFromCharMalloc("??????"), 0 }); // Нет заработка
+	Electra_addKeyMalloc(&out.criteria[3].scale_keys, { String_CopyFromCharMalloc("Lives at the expense of others"), 5000 }); // Живёт за чужой счёт
+	Electra_addKeyMalloc(&out.criteria[3].scale_keys, { String_CopyFromCharMalloc("No income"), 0 }); // Нет заработка
 	out.criteria[4] = { String_CopyFromCharMalloc("Languages"), 3, {NULL, 0}, 1 };
-	Electra_addKeyMalloc(&out.criteria[4].scale_keys, { String_CopyFromCharMalloc("???"), 5 }); // Лингвистка.
-	Electra_addKeyMalloc(&out.criteria[4].scale_keys, { String_CopyFromCharMalloc("???"), 3 }); // Знаток.
-	Electra_addKeyMalloc(&out.criteria[4].scale_keys, { String_CopyFromCharMalloc("???"), 1 }); // Знает только свой язык.
+	Electra_addKeyMalloc(&out.criteria[4].scale_keys, { String_CopyFromCharMalloc("Linguist"), 5 }); // Лингвистка.
+	Electra_addKeyMalloc(&out.criteria[4].scale_keys, { String_CopyFromCharMalloc("Language expert"), 3 }); // Знаток.
+	Electra_addKeyMalloc(&out.criteria[4].scale_keys, { String_CopyFromCharMalloc("Knows two languages"), 2 }); // Знает два языка.
+	Electra_addKeyMalloc(&out.criteria[4].scale_keys, { String_CopyFromCharMalloc("Knows only your language"), 1 }); // Знает только свой язык.
 	// TODO
 }
 
