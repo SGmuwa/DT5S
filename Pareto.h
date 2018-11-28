@@ -299,9 +299,9 @@ int Pareto_destructorTableFree(Pareto_strValueTable * input)
 int Pareto_intilizalTableMalloc(Pareto_strValueTable * out, size_t countLines, size_t countColumns, size_t countChars)
 {
 	Pareto_strValueTable table = {
-		malloc(sizeof(*table.titles) * countColumns),
-		malloc(sizeof(*table.lines) * countLines), // Указатель на экземпляры
-		malloc(sizeof(*table.flags) * countColumns), // Флаги таблицы
+		(string *) malloc(sizeof(*table.titles) * countColumns),
+		(Pareto_strValues *) malloc(sizeof(*table.lines) * countLines), // Указатель на экземпляры
+		(unsigned char *) malloc(sizeof(*table.flags) * countColumns), // Флаги таблицы
 		countLines, // Количество экземпляров
 		countColumns // Критерии
 	};

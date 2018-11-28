@@ -19,7 +19,7 @@ typedef struct {
 string String_intilizalStringMalloc(size_t length)
 {
 	string output = {
-		malloc(sizeof(char)*length),
+		(char*)malloc(sizeof(char)*length),
 		length
 	};
 	return output;
@@ -31,7 +31,7 @@ string String_CopyFromCharMalloc(const char * input)
 		return (string){ NULL, 0 };
 	size_t len = strlen(input);
 	string output = {
-		malloc(len*sizeof(char)),
+		(char*)malloc(len*sizeof(char)),
 		len
 	};
 	#ifdef _MSC_VER
@@ -45,7 +45,7 @@ string String_CopyFromCharMalloc(const char * input)
 wstring String_intilizalWstringMalloc(size_t length)
 {
 	wstring output = {
-		malloc(sizeof(wchar_t)*length),
+		(wchar_t*)malloc(sizeof(wchar_t)*length),
 		length
 	};
 	return output;
