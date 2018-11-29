@@ -56,7 +56,7 @@ dkms.conf
 *.opendb
 *.ipch
 *.sln
-*.vcxproj*
+# *.vcxproj*
 *.tlog
 *unsuccessfulbuild
 *.suo
