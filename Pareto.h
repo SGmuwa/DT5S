@@ -440,22 +440,6 @@ extern "C"
 		return 0;
 	}
 
-	void Pareto_intilizalTableMalloc_free_test(void)
-	{
-
-	}
-
-	void Pareto_manyintilizalTableMalloc_free_test(void)
-	{
-		printf("Start many Pareto test...\n");
-		Pareto_strValueTable a;
-		for (size_t i = 0; i < 1000; i++) {
-			Pareto_intilizalTableMalloc(&a, 100, 100, 100);
-			Pareto_destructorTableFree(&a);
-		}
-		printf("Finish manny Pareto test.\n");
-	}
-
 	string Pareto_getListNamesMalloc(const Pareto_strValueTable input)
 	{
 		string out = { NULL, 0 };
@@ -490,61 +474,6 @@ extern "C"
 		free(out.str); out.length = 0; out.str = NULL;
 
 		return outSmall;
-	}
-
-	void manyMallocFree_test(void)
-	{
-		printf("Start many malloc test...\n");
-		void * a;
-		for (size_t i = 0; i < 100000; i++) {
-			a = malloc(1024 * 4);
-			free(a);
-		}
-		printf("Finish many free test.\n");
-	}
-
-	void Pareto_find_test(void)
-	{
-		printf("Pareto find test start...\n");
-		Pareto_strValueTable tst; // test
-		if (Pareto_intilizalTableMalloc(&tst, 9, 3, 30) != 0)
-		{
-			printf("Pareto malloc error in Pareto_findMalloc.");
-			return;
-		}
-
-		memcpy(tst.titles[0].str, "Salary (rub) +", tst.titles[0].length);
-		memcpy(tst.titles[1].str, "Duration of vacation (days) +", tst.titles[1].length);
-		memcpy(tst.titles[2].str, "Travel time (minutes) -", tst.titles[2].length);
-
-		for (size_t i = 0; i < 9; i++)
-		{
-			tst.lines[i].name.str[0] = '1' + i;
-			tst.lines[i].name.str[1] = 0;
-		}
-
-		tst.flags[0] = 1;
-		tst.flags[1] = 1;
-		tst.flags[2] = 0;
-
-		memcpy_s(tst.lines[0].columns, sizeof(*tst.lines->columns)*tst.countColumns, (double[3]) { 900.0, 20.0, 60.0 }, sizeof(double[3]));
-		memcpy_s(tst.lines[1].columns, sizeof(*tst.lines->columns)*tst.countColumns, (double[3]) { 500.0, 30.0, 20.0 }, sizeof(double[3]));
-		memcpy_s(tst.lines[2].columns, sizeof(*tst.lines->columns)*tst.countColumns, (double[3]) { 700.0, 36.0, 40.0 }, sizeof(double[3]));
-		memcpy_s(tst.lines[3].columns, sizeof(*tst.lines->columns)*tst.countColumns, (double[3]) { 800.0, 40.0, 50.0 }, sizeof(double[3]));
-		memcpy_s(tst.lines[4].columns, sizeof(*tst.lines->columns)*tst.countColumns, (double[3]) { 400.0, 60.0, 15.0 }, sizeof(double[3]));
-		memcpy_s(tst.lines[5].columns, sizeof(*tst.lines->columns)*tst.countColumns, (double[3]) { 600.0, 30.0, 10.0 }, sizeof(double[3]));
-		memcpy_s(tst.lines[6].columns, sizeof(*tst.lines->columns)*tst.countColumns, (double[3]) { 900.0, 35.0, 60.0 }, sizeof(double[3]));
-		memcpy_s(tst.lines[7].columns, sizeof(*tst.lines->columns)*tst.countColumns, (double[3]) { 600.0, 24.0, 10.0 }, sizeof(double[3]));
-		memcpy_s(tst.lines[8].columns, sizeof(*tst.lines->columns)*tst.countColumns, (double[3]) { 650.0, 35.0, 40.0 }, sizeof(double[3]));
-
-		Pareto_write(tst);
-		Pareto_strValueTable tst2 = Pareto_findMalloc(tst);
-		Pareto_write(tst2);
-
-		Pareto_destructorTableFree(&tst);
-		Pareto_destructorTableFree(&tst2);
-
-		printf("Pereto find test end...\n");
 	}
 
 #ifdef __cplusplus

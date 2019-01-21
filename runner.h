@@ -62,8 +62,12 @@ void z2_interface(void)
 
 void run(void)
 {
+#ifdef _DEBUG
 	z1_test();
-	switch (UserInterface_GetChek("0. Pareto\n1. el\n", 1))
+	z2_test();
+	z3_test();
+#endif // _DEBUG
+	switch (UserInterface_GetChek("0. Pareto\n1. electro\n", 1))
 	{
 	case 0:
 		z1_interface();
