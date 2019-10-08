@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "..\String-CLanguage\string_t.h"
+#include <locale.h>
 
 
 
@@ -21,6 +22,7 @@ typedef struct {
 	size_t countColumns;		// Количество критериев экземпляров в таблице.
 } Pareto_strValueTable;
 
+// Печать таблицы.
 int Pareto_write(const Pareto_strValueTable input)
 {
 	printf("\t\t");
@@ -59,7 +61,7 @@ int Pareto_intilizalTableMalloc(Pareto_strValueTable* out, size_t countLines, si
 	}
 	for (size_t i = 0; i < table.countColumns; i++)
 	{
-		table.titles[i].first = (char*)malloc(sizeof(*table.titles->str) * countChars);
+		table.titles[i].first = (char*)malloc(sizeof(*table.titles->first) * countChars);
 		table.titles[i].length = countChars;
 
 		if (table.titles[i].first == NULL)
@@ -268,6 +270,45 @@ unsigned char Pareto_isFirstBetter(size_t indexFirst, size_t indexSecond, const 
 		return 0;
 }
 
+/*
+Определяет по парето самый лучший экземпляр.
+table - таблица, в которой стравниваются экземпляры.
+Возвращает: индентификатор лучшего.
+*/
+size_t Pareto_WhoBetter(const Pareto_strValueTable table)
+{
+	if (table.countLines == 0)
+		return SIZE_MAX;
+	size_t* who = malloc(sizeof(size_t) * table.countLines);
+	for (size_t i = 0; i < table.countLines; i++)
+		who[i] = SIZE_MAX / 2;
+	for (size_t i = 0; i < table.countLines; i++)
+		for (size_t j = 0; j < table.countLines; j++)
+		{
+			if (i == j)
+				continue;
+			switch (Pareto_isFirstBetter(i, j, table))
+			{
+			case 1:
+				who[i]++;
+				who[j]--;
+				break;
+			case 2:
+				who[i]--;
+				who[j]++;
+				break;
+			}
+		}
+	size_t indexMax = SIZE_MAX;
+	for (size_t i = 0; i < table.countLines; i++)
+	{
+		if (who[i] > who[indexMax == SIZE_MAX ? 0 : indexMax])
+			indexMax = i;
+	}
+	free(who);
+	return indexMax;
+}
+
 // Реализовать программу, которая ищет множество Парето
 Pareto_strValueTable Pareto_findMalloc(const Pareto_strValueTable input)
 {
@@ -394,11 +435,11 @@ int Pareto_intilizalDefaultTableMalloc(Pareto_strValueTable* output)
 	int err = Pareto_intilizalTableMalloc(output, 10, 5, 32);
 	if (err != 0) return err;
 
-	memcpy(output->titles[0].first, "The weight -", output->titles[0].length);
-	memcpy(output->titles[1].first, "Growth -    ", output->titles[1].length);
-	memcpy(output->titles[2].first, "Diseases -  ", output->titles[2].length);
-	memcpy(output->titles[3].first, "Salary +    ", output->titles[3].length);
-	memcpy(output->titles[4].first, "Languages + ", output->titles[4].length);
+	memcpy(output->titles[0].first, "Вес -     ", output->titles[0].length);
+	memcpy(output->titles[1].first, "Рост -    ", output->titles[1].length);
+	memcpy(output->titles[2].first, "Болезни - ", output->titles[2].length);
+	memcpy(output->titles[3].first, "Зарплата +", output->titles[3].length);
+	memcpy(output->titles[4].first, "Языки +   ", output->titles[4].length);
 
 	output->flags[0] = 0;
 	output->flags[1] = 0;
@@ -406,16 +447,16 @@ int Pareto_intilizalDefaultTableMalloc(Pareto_strValueTable* output)
 	output->flags[3] = 1;
 	output->flags[4] = 1;
 
-	memcpy(output->lines[0].name.first, "Alyona ", output->lines[0].name.length);
-	memcpy(output->lines[1].name.first, "Elena  ", output->lines[1].name.length);
-	memcpy(output->lines[2].name.first, "My cat ", output->lines[2].name.length);
-	memcpy(output->lines[3].name.first, "Peter  ", output->lines[3].name.length);
-	memcpy(output->lines[4].name.first, "Irina  ", output->lines[4].name.length);
-	memcpy(output->lines[5].name.first, "Mama   ", output->lines[5].name.length);
-	memcpy(output->lines[6].name.first, "Natasha", output->lines[6].name.length);
-	memcpy(output->lines[7].name.first, "Galina ", output->lines[7].name.length);
-	memcpy(output->lines[8].name.first, "Olga   ", output->lines[8].name.length);
-	memcpy(output->lines[9].name.first, "Zinaida", output->lines[9].name.length);
+	memcpy(output->lines[0].name.first, "Алёна  ", output->lines[0].name.length);
+	memcpy(output->lines[1].name.first, "Елена  ", output->lines[1].name.length);
+	memcpy(output->lines[2].name.first, "Мой кот", output->lines[2].name.length);
+	memcpy(output->lines[3].name.first, "Пётр   ", output->lines[3].name.length);
+	memcpy(output->lines[4].name.first, "Ирина  ", output->lines[4].name.length);
+	memcpy(output->lines[5].name.first, "Мама   ", output->lines[5].name.length);
+	memcpy(output->lines[6].name.first, "Наташа ", output->lines[6].name.length);
+	memcpy(output->lines[7].name.first, "Галина ", output->lines[7].name.length);
+	memcpy(output->lines[8].name.first, "Ольга  ", output->lines[8].name.length);
+	memcpy(output->lines[9].name.first, "Зинаида", output->lines[9].name.length);
 
 
 
@@ -429,7 +470,7 @@ int Pareto_intilizalDefaultTableMalloc(Pareto_strValueTable* output)
 	memcpy_s(output->lines[7].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 75.0, 152.0, 1.0, 65000.0, 2.0 }, sizeof(double[5]));
 	memcpy_s(output->lines[8].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 80.0, 151.0, 3.0, 75000.0, 1.0 }, sizeof(double[5]));
 	memcpy_s(output->lines[9].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 74.0, 174.0, 2.0, 23000.0, 2.0 }, sizeof(double[5]));
-
+	setlocale(LC_ALL, "ru");
 	return 0;
 }
 

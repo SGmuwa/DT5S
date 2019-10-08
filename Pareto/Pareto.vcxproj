@@ -124,8 +124,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Pareto.h" />
-    <ClInclude Include="ParetoInterface.h" />
     <ClInclude Include="ParetoTest.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ParetoInterface.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
