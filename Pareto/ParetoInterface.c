@@ -4,28 +4,28 @@
 void main(void)
 {
 	Pareto_strValueTable table;
-	if (Pareto_intilizalDefaultTableMalloc(&table) != 0)
+	if (Pareto_intilizalDefaultTableMalloc(&table) != 0) // Создание таблицы
 	{
-		printf("error to create table.\n");
+		printf("Ошибка при создании таблицы.\n");
 		return;
 	}
 	printf("\n------------------------------\n");
-	Pareto_write(table);
+	Pareto_write(table); // Печать первоначальной таблицы
 	printf("\n------------------------------\n");
-	Pareto_strValueTable table2 = Pareto_findMalloc(table);
-	Pareto_destructorTableFree(&table);
-	Pareto_write(table2);
+	Pareto_strValueTable table2 = Pareto_findMalloc(table); // Получения по Парето новой таблицы.
+	Pareto_destructorTableFree(&table); // Старая таблица более не нужна.
+	Pareto_write(table2); // Печать новой таблицы.
 
 	string_t titles = Pareto_getListTitlesMalloc(table2);
 	do {
-		printf("main?\n");
+		printf("Выберите критерий для сокращения.\n");
 		size_t chekByUser = ~(size_t)0;
 		if (table2.countColumns < (unsigned char)~(unsigned char)0)
 			chekByUser = UserInterface_GetChek(titles.first, (unsigned char)table2.countColumns);
 		else
 			chekByUser = (size_t)UserInterface_GetUnsignedLongLongIntLimit(titles.first, 0, table2.countColumns - 1);
 
-		Pareto_strValueTable table3 = Pareto_optiMalloc(table2, chekByUser, UserInterface_GetFloat("граница = "));
+		Pareto_strValueTable table3 = Pareto_optiMalloc(table2, chekByUser, UserInterface_GetFloat("граница = ")); // Оптимизация таблицы по Парето
 		Pareto_destructorTableFree(&table2);
 		Pareto_write(table3);
 		table2 = table3;

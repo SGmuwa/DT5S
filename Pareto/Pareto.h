@@ -275,19 +275,19 @@ Pareto_strValueTable Pareto_findMalloc(const Pareto_strValueTable input)
 {
 	// Поиск проигравших.
 
-	size_t* loosers = (size_t*)malloc(sizeof(size_t) * input.countLines); // лист лузеров.
+	size_t* loosers = (size_t*)malloc(sizeof(size_t) * input.countLines); // Лист проигравших.
 	if (loosers == NULL)
 		return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
 	for (size_t i = input.countLines; --i != ~(size_t)0;)
 		loosers[i] = ~(size_t)0;
-	size_t loo_idx = 0; // идентификатор листа лузеров
+	size_t loo_idx = 0; // Идентификатор листа проигравших.
 	unsigned char change;
 	for (size_t x = input.countLines; --x != 0;)
 		for (size_t y = x - 1; --y != ~(size_t)0;)
 		{
 			change = Pareto_isFirstBetter(x, y, input);
 			if (change == 255)
-			{
+			{// Особая ошибка. Нельзя продолжить.
 				free(loosers);
 				return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 };
 			}
@@ -295,6 +295,7 @@ Pareto_strValueTable Pareto_findMalloc(const Pareto_strValueTable input)
 				loosers[loo_idx++] = change == 1 ? y : x;
 		}
 
+	// Удаляем проигравших.
 	Pareto_strValueTable out = Pareto_deleteLinesMalloc(input, loosers, loo_idx);
 
 	free(loosers);
@@ -324,6 +325,7 @@ Pareto_strValueTable Pareto_optiMalloc(const Pareto_strValueTable input, size_t 
 
 	for (size_t i = input.countLines; --i != ~(size_t)0;)
 		if ((input.lines[i].columns == NULL) ||
+			/* В зависимости от того, что лучше - меньше или больше, идёт сравнение. */
 			(input.flags[idMain] && input.lines[i].columns[idMain] < border) ||
 			(!input.flags[idMain] && input.lines[i].columns[idMain] > border))
 			loosers[loo_idx++] = i;
