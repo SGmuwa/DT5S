@@ -270,45 +270,6 @@ unsigned char Pareto_isFirstBetter(size_t indexFirst, size_t indexSecond, const 
 		return 0;
 }
 
-/*
-Определяет по парето самый лучший экземпляр.
-table - таблица, в которой стравниваются экземпляры.
-Возвращает: индентификатор лучшего.
-*/
-size_t Pareto_WhoBetter(const Pareto_strValueTable table)
-{
-	if (table.countLines == 0)
-		return SIZE_MAX;
-	size_t* who = malloc(sizeof(size_t) * table.countLines);
-	for (size_t i = 0; i < table.countLines; i++)
-		who[i] = SIZE_MAX / 2;
-	for (size_t i = 0; i < table.countLines; i++)
-		for (size_t j = 0; j < table.countLines; j++)
-		{
-			if (i == j)
-				continue;
-			switch (Pareto_isFirstBetter(i, j, table))
-			{
-			case 1:
-				who[i]++;
-				who[j]--;
-				break;
-			case 2:
-				who[i]--;
-				who[j]++;
-				break;
-			}
-		}
-	size_t indexMax = SIZE_MAX;
-	for (size_t i = 0; i < table.countLines; i++)
-	{
-		if (who[i] > who[indexMax == SIZE_MAX ? 0 : indexMax])
-			indexMax = i;
-	}
-	free(who);
-	return indexMax;
-}
-
 // Реализовать программу, которая ищет множество Парето
 Pareto_strValueTable Pareto_findMalloc(const Pareto_strValueTable input)
 {
