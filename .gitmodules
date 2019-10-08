@@ -1,0 +1,6 @@
+[submodule "UserInterface-CLanguage"]
+	path = UserInterface-CLanguage
+	url = https://github.com/SGmuwa/UserInterface-CLanguage.git
+[submodule "String-CLanguage"]
+	path = String-CLanguage
+	url = https://github.com/SGmuwa/String-CLanguage/
