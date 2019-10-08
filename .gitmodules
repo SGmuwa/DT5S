@@ -4,3 +4,6 @@
 [submodule "String-CLanguage"]
 	path = String-CLanguage
 	url = https://github.com/SGmuwa/String-CLanguage/
+[submodule "minctest"]
+	path = minctest
+	url = https://github.com/SGmuwa/minctest.git
