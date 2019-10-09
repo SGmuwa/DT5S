@@ -17,6 +17,11 @@ namespace Electra
             Values = new ReadOnlyDictionary<Column, double>(values);
         }
 
+        public override bool Equals(object obj)
+            => obj is Exemplar a ? Values.Equals(a.Values) : false;
+
+        public override int GetHashCode() => Values.GetHashCode();
+
         public double this[Column key] => Values[key];
 
         public IEnumerable<Column> Keys => ((IReadOnlyDictionary<Column, double>)Values).Keys;
