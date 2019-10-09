@@ -14,55 +14,76 @@ namespace Electra
             Console.ReadKey();
         }
 
-        public class Data_computers
+        public struct CandidateForLove
         {
-            public int price;
-            public double weight;
-            public int hdd;
-            public double clock_frequency;
-            public int RAM;
-            public Data_computers(int price, double weight, int hdd, double
-            clock_frequency, int RAM)
+            /// <summary>
+            /// Вес.
+            /// </summary>
+            public double Weight;
+            /// <summary>
+            /// Рост.
+            /// </summary>
+            public double Height;
+            /// <summary>
+            /// Количество хронических заболеваний.
+            /// </summary>
+            public ulong Diseases;
+            /// <summary>
+            /// Зарплата в месяц.
+            /// </summary>
+            public decimal Salary;
+            /// <summary>
+            /// Сколько человек знает человеческих языков.
+            /// </summary>
+            public ulong Languages;
+
+            /// <summary>
+            /// Создание кандидата для любви.
+            /// </summary>
+            /// <param name="weight">Вес.</param>
+            /// <param name="height">Рост.</param>
+            /// <param name="diseases">Количество хронических заболеваний</param>
+            /// <param name="salary">Зарплата в месяц.</param>
+            /// <param name="languages">Сколько знает человеческих языков.</param>
+            public CandidateForLove(double weight, double height, ulong diseases, decimal salary, ulong languages)
             {
-
-                this.price = price;
-                this.weight = weight;
-                this.hdd = hdd;
-
-                this.clock_frequency = clock_frequency;
-                this.RAM = RAM;
+                Weight = weight;
+                Height = height;
+                Diseases = diseases;
+                Salary = salary;
+                Languages = languages;
             }
-
         }
+
+
 
         public class TPR_laba2_Electra
         {
             public static void main(string[] args)
             {
                 ElementOfTable[,] matrix = new ElementOfTable[10, 10];
-                List<Data_computers> list = new List<Data_computers>();
-                list.Add(new Data_computers(10, 5, 8, 12, 12));
-                list.Add(new Data_computers(5, 10, 8, 8, 8));
-                list.Add(new Data_computers(15, 5, 12, 12, 8));
-                list.Add(new Data_computers(15, 12, 12, 8, 12));
-                list.Add(new Data_computers(10, 10, 12, 8, 8));
-                list.Add(new Data_computers(5, 10, 12, 4, 8));
-                list.Add(new Data_computers(15, 15, 12, 12, 12));
-                list.Add(new Data_computers(10, 10, 12, 12, 12));
-                list.Add(new Data_computers(15, 15, 8, 8, 12));
-                list.Add(new Data_computers(15, 15, 12, 8, 12));
+                List<CandidateForLove> list = new List<CandidateForLove>
+                {
+                    new CandidateForLove(10, 5, 8, 12, 12),
+                    new CandidateForLove(5, 10, 8, 8, 8),
+                    new CandidateForLove(15, 5, 12, 12, 8),
+                    new CandidateForLove(15, 12, 12, 8, 12),
+                    new CandidateForLove(10, 10, 12, 8, 8),
+                    new CandidateForLove(5, 10, 12, 4, 8),
+                    new CandidateForLove(15, 15, 12, 12, 12),
+                    new CandidateForLove(10, 10, 12, 12, 12),
+                    new CandidateForLove(15, 15, 8, 8, 12),
+                    new CandidateForLove(15, 15, 12, 8, 12)
+                };
                 int weight_of_k1 = 5; int weight_of_k2 = 5; int weight_of_k3 = 4;
-
-                BigInteger a = 2;
-
                 int weight_of_k4 = 4; int weight_of_k5 = 4;
                 for (int i = 0; i < 10; i++)
                     for (int j = 0; j < 10; j++) if (i == j) matrix[i, j] = "x";
                 for (int i = 0; i < 10; i++)
                     for (int j = i + 1; j < 10; j++)
                     {
-                        Data_computers Ai = list[i];
-                        Data_computers Aj = list[j];
+                        CandidateForLove Ai = list[i];
+                        CandidateForLove Aj = list[j];
                         int Nij = 0; int Pij = 0; if (Ai.price < Aj.price) Pij += weight_of_k1;
                         else if (Ai.price > Aj.price) Nij += weight_of_k1;
 
