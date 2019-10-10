@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Electra
 {
-    public class TableOfResults
+    public class TableOfResults : IReadOnlyDictionary<KeyValuePair<Exemplar, Exemplar>, ElementOfTable>
     {
         private readonly IReadOnlyDictionary<KeyValuePair<Exemplar, Exemplar>, ElementOfTable> ratio;
 
@@ -25,6 +27,12 @@ namespace Electra
                     throw new ArgumentException();
             }
         }
+
+        public IEnumerable<KeyValuePair<Exemplar, Exemplar>> Keys => ratio.Keys;
+
+        public IEnumerable<ElementOfTable> Values => ratio.Values;
+
+        public int Count => ratio.Count;
 
         public ElementOfTable this[Exemplar a, Exemplar b]
         {
@@ -94,6 +102,26 @@ namespace Electra
             }
             sb.Length--;
             return sb.ToString();
+        }
+
+        public bool ContainsKey(KeyValuePair<Exemplar, Exemplar> key)
+        {
+            return ratio.ContainsKey(key);
+        }
+
+        public bool TryGetValue(KeyValuePair<Exemplar, Exemplar> key, [MaybeNullWhen(false)] out ElementOfTable value)
+        {
+            return ratio.TryGetValue(key, out value);
+        }
+
+        public IEnumerator<KeyValuePair<KeyValuePair<Exemplar, Exemplar>, ElementOfTable>> GetEnumerator()
+        {
+            return ratio.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ratio.GetEnumerator();
         }
     }
 }

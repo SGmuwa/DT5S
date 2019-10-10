@@ -6,9 +6,9 @@ using System.Text;
 
 namespace Electra
 {
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main()
         {
             Column price = new Column("Цена", 5, false);
             Column weight = new Column("Вес", 5, false);
@@ -42,11 +42,11 @@ namespace Electra
                 };
             var res = StaticTools.ElectraMethod(exemplars);
             res.DecisionThreshold = 1;
-            Console.WriteLine("Порог d = 1");
+            Console.WriteLine("Порог = 1");
             Console.WriteLine(res);
-            res.DecisionThreshold = 1.7;
             Console.WriteLine();
-            Console.WriteLine("Порог c = 1.7");
+            res.DecisionThreshold = 1.7;
+            Console.WriteLine("Порог = 1.7");
             Console.WriteLine(res.ToString());
 
             Console.ReadKey();

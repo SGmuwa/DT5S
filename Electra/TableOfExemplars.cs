@@ -25,6 +25,11 @@ namespace Electra
             Exemplares.Add(exemplar);
         }
 
+        public void AddRange(IEnumerable<Exemplar> toAdd)
+        {
+            foreach (Exemplar add in toAdd) Add(add);
+        }
+
         public IEnumerable<KeyValuePair<Exemplar, Exemplar>> Join()
         {
             foreach (Exemplar a in this)
@@ -42,21 +47,21 @@ namespace Electra
                 foreach (var col in n)
                     if (col.Value.ToString().Length > max)
                         max = col.Value.ToString().Length;
+            max++;
             StringBuilder sb = new StringBuilder();
+            sb.Append("".ToString(max));
             foreach (var n in Columns)
             {
                 sb.Append(n.ToString(max));
-                sb.Append(' ');
             }
-            sb.Length--;
+            sb.Append('\n');
             foreach(var n in this)
             {
+                sb.Append(n.Name.ToString(max));
                 foreach(var c in Columns)
                 {
                     sb.Append(n[c].ToString(max));
-                    sb.Append(' ');
                 }
-                sb.Length--;
                 sb.Append('\n');
             }
             sb.Length--;
