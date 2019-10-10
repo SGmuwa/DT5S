@@ -19,12 +19,25 @@ namespace Electra
         /// True, если чем больше показатель критерия, тем лучше. False, если лучше меньше.
         /// Например, True - личная зарплата. False - количество личных неудач.
         /// </summary>
-        public bool isBetterMany;
+        public bool IsBetterMany;
+
+        /// <summary>
+        /// Создание критерия.
+        /// </summary>
+        /// <param name="name">Имя критерия.</param>
+        /// <param name="weight">Вес критерия.</param>
+        /// <param name="isBetterMany">True, если чем больше показатель критерия, тем лучше. False, если лучше меньше.</param>
+        public Column(string name, double weight, bool isBetterMany)
+        {
+            Name = name;
+            Weight = weight;
+            IsBetterMany = isBetterMany;
+        }
 
         public bool Equals(Column other)
             => Name.Equals(other.Name)
             && Weight.Equals(other.Weight)
-            && isBetterMany.Equals(other.isBetterMany);
+            && IsBetterMany.Equals(other.IsBetterMany);
 
         public override bool Equals(object obj)
         {
@@ -37,9 +50,9 @@ namespace Electra
         public override int GetHashCode()
             => Name.GetHashCode()
             ^ Weight.GetHashCode()
-            ^ isBetterMany.GetHashCode();
+            ^ IsBetterMany.GetHashCode();
 
         public override string ToString()
-            => $"{Name} ({Weight, 0}, {(isBetterMany ? "+" : "-")})";
+            => $"{Name} ({Weight, 0}, {(IsBetterMany ? "+" : "-")})";
     }
 }

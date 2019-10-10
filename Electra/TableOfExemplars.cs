@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Electra
 {
-    class TableOfExemplars : IEnumerable<Exemplar>, IEnumerable
+    public class TableOfExemplars : IEnumerable<Exemplar>, IEnumerable
     {
         public readonly ReadOnlyCollection<Column> Columns;
 

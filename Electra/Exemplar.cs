@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Electra
 {
-    class Exemplar : IReadOnlyDictionary<Column, double>
+    public class Exemplar : IReadOnlyDictionary<Column, double>
     {
         private readonly ReadOnlyDictionary<Column, double> Values;
 

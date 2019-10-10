@@ -2,7 +2,7 @@
 
 namespace Electra
 {
-    internal struct ElementOfTable
+    public struct ElementOfTable
     {
         public StateElementOfTable State
         {

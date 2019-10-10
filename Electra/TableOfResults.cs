@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Electra
 {
-    class TableOfResults
+    public class TableOfResults
     {
         private readonly IReadOnlyDictionary<KeyValuePair<Exemplar, Exemplar>, ElementOfTable> ratio;
 

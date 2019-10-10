@@ -62,6 +62,9 @@ namespace Electra
             public static void main(string[] args)
             {
                 ElementOfTable[,] matrix = new ElementOfTable[10, 10];
+                TableOfExemplars exemplars = new TableOfExemplars(new List<Column>() {
+                    /**/
+                });
                 List<CandidateForLove> list = new List<CandidateForLove>
                 {
                     new CandidateForLove(10, 5, 8, 12, 12),
