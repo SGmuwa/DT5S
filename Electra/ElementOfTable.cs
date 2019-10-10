@@ -10,10 +10,10 @@ namespace Electra
             {
                 if (double.IsPositiveInfinity(Value))
                     return StateElementOfTable.Inf;
-                else if (double.IsInfinity(Value))
-                    return StateElementOfTable.Impossible;
-                else if (double.IsNaN(Value))
+                else if (double.IsNegativeInfinity(Value))
                     return StateElementOfTable.None;
+                else if (double.IsNaN(Value))
+                    return StateElementOfTable.Impossible;
                 else
                     return StateElementOfTable.Data;
             }
@@ -21,7 +21,7 @@ namespace Electra
 
         public double Value { get; }
 
-        public ElementOfTable(double v = default)
+        public ElementOfTable(double v)
             => Value = v;
 
         public override string ToString()
@@ -31,9 +31,9 @@ namespace Electra
             => State switch
             {
                 StateElementOfTable.Data => Value.ToString(format),
-                StateElementOfTable.Impossible => "-",
+                StateElementOfTable.None => "-",
                 StateElementOfTable.Inf => "inf",
-                StateElementOfTable.None => "x",
+                StateElementOfTable.Impossible => "x",
                 _ => throw new Exception(),
             };
 
@@ -57,6 +57,16 @@ namespace Electra
 
         public static explicit operator string(ElementOfTable value)
             => value.ToString();
+
+        public static implicit operator ElementOfTable(StateElementOfTable value)
+            => value switch
+            {
+                StateElementOfTable.Data => 0.0,
+                StateElementOfTable.None => "-",
+                StateElementOfTable.Inf => "inf",
+                StateElementOfTable.Impossible => "x",
+                _ => throw new Exception(),
+            };
     }
     internal enum StateElementOfTable
     {

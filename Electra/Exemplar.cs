@@ -11,16 +11,17 @@ namespace Electra
     {
         private readonly ReadOnlyDictionary<Column, double> Values;
 
-        public Exemplar(Dictionary<Column, double> values)
+        public string Name { get; }
+        public Exemplar(string name, Dictionary<Column, double> values)
         {
-            if (values == null) throw new ArgumentNullException();
-            Values = new ReadOnlyDictionary<Column, double>(values);
+            Name = name ?? throw new ArgumentNullException();
+            Values = new ReadOnlyDictionary<Column, double>(values ?? throw new ArgumentNullException());
         }
 
         public override bool Equals(object obj)
-            => obj is Exemplar a ? Values.Equals(a.Values) : false;
+            => obj is Exemplar a ? Values.Equals(a.Values) && Name.Equals(a.Name) : false;
 
-        public override int GetHashCode() => Values.GetHashCode();
+        public override int GetHashCode() => Values.GetHashCode() ^ Name.GetHashCode();
 
         public double this[Column key] => Values[key];
 

@@ -3,16 +3,17 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace Electra
 {
-    class Table : IEnumerable<Exemplar>, IEnumerable
+    class TableOfExemplars : IEnumerable<Exemplar>, IEnumerable
     {
         public readonly ReadOnlyCollection<Column> Columns;
 
-        private readonly List<Exemplar> Exemplares = new List<Exemplar>();
+        private readonly HashSet<Exemplar> Exemplares = new HashSet<Exemplar>();
 
-        public Table(IEnumerable<Column> columns)
+        public TableOfExemplars(IEnumerable<Column> columns)
         {
             Columns = new ReadOnlyCollection<Column>(new List<Column>(columns));
         }
@@ -24,6 +25,9 @@ namespace Electra
                     throw new ArgumentException();
             Exemplares.Add(exemplar);
         }
+
+        public IEnumerable<KeyValuePair<Exemplar, Exemplar>> Join() =>
+            Exemplares.Join(Exemplares, _ => _, _ => _, (a, b) => new KeyValuePair<Exemplar, Exemplar>(a, b));
 
         public override string ToString()
         {
@@ -38,7 +42,7 @@ namespace Electra
             StringBuilder sb = new StringBuilder();
             foreach (var n in Columns)
             {
-                sb.Append(StrWithLength(n, max));
+                sb.Append(n.ToString(max));
                 sb.Append(' ');
             }
             sb.Length--;
@@ -46,7 +50,7 @@ namespace Electra
             {
                 foreach(var c in Columns)
                 {
-                    sb.Append(StrWithLength(n[c], max));
+                    sb.Append(n[c].ToString(max));
                     sb.Append(' ');
                 }
                 sb.Length--;
@@ -54,10 +58,6 @@ namespace Electra
             }
             sb.Length--;
             return sb.ToString();
-
-
-            static string StrWithLength(object toInsert, int len)
-                    => string.Format(string.Format("{{0, {0}}}", len), toInsert.ToString());
         }
 
         public IEnumerator<Exemplar> GetEnumerator() => Exemplares.GetEnumerator();
