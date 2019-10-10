@@ -79,14 +79,18 @@ namespace Electra
             {
                 sb.Append(e.Name.ToString(max));
             }
+            sb.Append('\n');
             foreach(Exemplar a in exemplars)
             {
                 sb.Append(a.Name.ToString(max));
                 foreach(Exemplar b in exemplars)
                 {
-                    sb.Append(this[b, a].ToString(max));
+                    if (a == b)
+                        sb.Append('x'.ToString(max));
+                    else
+                        sb.Append(this[b, a].ToString(max));
                 }
-                sb.Append("\n");
+                sb.Append('\n');
             }
             sb.Length--;
             return sb.ToString();

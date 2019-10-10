@@ -21,6 +21,9 @@ namespace Electra
             => column.IsBetterMany ? (this[column] > another[column])
                 : (this[column] < another[column]);
 
+        public override string ToString()
+            => $"{Name} ({Values.Count})";
+
         public override bool Equals(object obj)
             => obj is Exemplar a ? Values.Equals(a.Values) && Name.Equals(a.Name) : false;
 

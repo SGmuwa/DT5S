@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text;
-using System.Linq;
 
 namespace Electra
 {
@@ -26,8 +25,12 @@ namespace Electra
             Exemplares.Add(exemplar);
         }
 
-        public IEnumerable<KeyValuePair<Exemplar, Exemplar>> Join() =>
-            Exemplares.Join(Exemplares, _ => _, _ => _, (a, b) => new KeyValuePair<Exemplar, Exemplar>(a, b));
+        public IEnumerable<KeyValuePair<Exemplar, Exemplar>> Join()
+        {
+            foreach (Exemplar a in this)
+                foreach (Exemplar b in this)
+                    yield return new KeyValuePair<Exemplar, Exemplar>(a, b);
+        }
 
         public override string ToString()
         {

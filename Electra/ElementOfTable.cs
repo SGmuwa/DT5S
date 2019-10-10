@@ -31,9 +31,9 @@ namespace Electra
             => State switch
             {
                 StateElementOfTable.Data => Value.ToString(format),
-                StateElementOfTable.None => "-",
+                StateElementOfTable.Impossible => "-",
                 StateElementOfTable.Inf => "inf",
-                StateElementOfTable.Impossible => "x",
+                StateElementOfTable.None => "x",
                 _ => throw new Exception(),
             };
 
@@ -45,9 +45,9 @@ namespace Electra
             if (value == "inf")
                 return new ElementOfTable(double.PositiveInfinity);
             else if (value == "-")
-                return new ElementOfTable(double.NegativeInfinity);
-            else if (value == "x")
                 return new ElementOfTable(double.NaN);
+            else if (value == "x")
+                return new ElementOfTable(double.NegativeInfinity);
             else
                 return new ElementOfTable(double.Parse(value));
         }
@@ -62,9 +62,9 @@ namespace Electra
             => value switch
             {
                 StateElementOfTable.Data => 0.0,
-                StateElementOfTable.None => "-",
+                StateElementOfTable.Impossible => "-",
                 StateElementOfTable.Inf => "inf",
-                StateElementOfTable.Impossible => "x",
+                StateElementOfTable.None => "x",
                 _ => throw new Exception(),
             };
     }
