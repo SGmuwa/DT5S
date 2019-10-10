@@ -28,9 +28,9 @@ namespace Electra
                 };
                 foreach (Column difference in current.Columns)
                 {
-                    if (first[difference] > second[difference])
+                    if (first.IsBetter(difference, second))
                         score[first] += difference.Weight;
-                    else if (first[difference] < second[difference])
+                    else if (second.IsBetter(difference, first))
                         score[second] += difference.Weight;
                 }
                 values[pair] = score[first] / score[second];

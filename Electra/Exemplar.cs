@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace Electra
 {
@@ -17,6 +16,10 @@ namespace Electra
             Name = name ?? throw new ArgumentNullException();
             Values = new ReadOnlyDictionary<Column, double>(values ?? throw new ArgumentNullException());
         }
+
+        public bool IsBetter(Column column, Exemplar another)
+            => column.IsBetterMany ? (this[column] > another[column])
+                : (this[column] < another[column]);
 
         public override bool Equals(object obj)
             => obj is Exemplar a ? Values.Equals(a.Values) && Name.Equals(a.Name) : false;

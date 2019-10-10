@@ -68,7 +68,7 @@ namespace Electra
                 _ => throw new Exception(),
             };
     }
-    internal enum StateElementOfTable
+    public enum StateElementOfTable
     {
         None = 0,
         Impossible,
