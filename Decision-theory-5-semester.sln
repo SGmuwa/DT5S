@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UserInterface-CLanguage", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Electra", "Electra\Electra.csproj", "{A834224D-BFD7-4E62-9627-BBB2D8670B8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectraTests", "ElectraTests\ElectraTests.csproj", "{DF514836-3A7A-4E2C-A57C-B7682A60DAC3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{DF514836-3A7A-4E2C-A57C-B7682A60DAC3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
