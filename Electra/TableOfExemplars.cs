@@ -44,9 +44,13 @@ namespace Electra
                 if (n.ToString().Length > max)
                     max = n.ToString().Length;
             foreach (var n in Exemplares)
+            {
                 foreach (var col in n)
                     if (col.Value.ToString().Length > max)
                         max = col.Value.ToString().Length;
+                if (n.ToString().Length > max)
+                    max = n.ToString().Length;
+            }
             max++;
             StringBuilder sb = new StringBuilder();
             sb.Append("".ToString(max));
