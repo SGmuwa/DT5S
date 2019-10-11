@@ -82,7 +82,7 @@ namespace Electra
                     exemplars.Add(pair.Key.Value);
             }
             StringBuilder sb = new StringBuilder();
-            sb.Append("".ToString(max));
+            sb.Append("y\\x".ToString(max));
             foreach(Exemplar e in exemplars)
             {
                 sb.Append(e.Name.ToString(max));

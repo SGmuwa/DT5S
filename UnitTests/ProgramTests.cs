@@ -13,9 +13,9 @@ namespace Electra.Tests
         public void PupysTest()
         {
             Column price = new Column("Цена", 5, false);
-            Column weight = new Column("Вес", 5, false);
+            Column weight = new Column("Вес", 4, false);
             Column HDD = new Column("Ёмкость HDD", 4, true);
-            Column clock_frequency = new Column("Тактовая частота", 4, true);
+            Column clock_frequency = new Column("Тактовая частота", 5, true);
             Column RAM = new Column("ОП", 4, true);
             List<Exemplar> exList = new List<Exemplar>(){
                     new Exemplar("0 комп", new Dictionary<Column, double>()
@@ -62,7 +62,7 @@ namespace Electra.Tests
 
             MyAssert(1, 8, 2.25);
 
-            MyAssert(2, 1, 1.8);
+            MyAssert(2, 1, 2.6);
             MyAssert(2, 3, 2.25);
             MyAssert(2, 4, 1.8);
             MyAssert(2, 5, 1.8);
