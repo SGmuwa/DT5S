@@ -124,7 +124,7 @@ namespace Electra.Tests
             MyAssert(2, 5, 1.25);
             MyAssert(2, 6, 2.75);
             MyAssert(2, 7, 5);
-            // MyAssert(2, 8, 2.25); // !
+            // MyAssert(2, 8, 2.25); // ! М = 5 + 5 + 4 + 4 + 2 = 20, Н = 4, 20 / 4 = 5
             MyAssert(4, 1, 1.25);
             MyAssert(4, 6, 1.66);
             // MyAssert(4, 8, 1.8); // !
