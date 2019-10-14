@@ -10,17 +10,16 @@ namespace Analitic_Hierarchy_Process
     {
         public static void Main()
         {
-            int k = 5;
             Console.WriteLine("Матрица парных суждений");
             double[,] matrixA = {
                 {1,   1,   2,   4,   5 },
                 {NaN, 1,   3,   5,   5 },
                 {NaN, NaN, 1,   3,   5 },
                 {NaN, NaN, NaN, 1,   5 },
-                {NaN, NaN, NaN, NaN, 1 },
+                {NaN, NaN, NaN, NaN, 1 }
             };
-            for (int j = 0; j < k; j++)
-                for (int i = j + 1; i < k; i++)
+            for (int j = 0; j < matrixA.GetLength(0); j++)
+                for (int i = j + 1; i < matrixA.GetLength(1); i++)
                     matrixA[i, j] = 1 / matrixA[j, i];
             Console.WriteLine(matrixA.TableToString());
             double[] Wc = SearchOSWa(matrixA);
@@ -28,60 +27,43 @@ namespace Analitic_Hierarchy_Process
             double[][,] matrixK = {
                 new double[,] // K0
                 {
-                    {1, NaN, NaN, NaN, NaN },
-                    {3, 1,   NaN, NaN, NaN },
-                    {2, 3,   1,   NaN, NaN },
-                    {3, 5,   3,   1,   NaN },
-                    {3, 2,   2,   3,   1   },
+                    {1, NaN },
+                    {1, 1   }
                 },
                 new double[,] // К1
                 {
-                    {1, NaN, NaN, NaN, NaN },
-                    {1, 1,   NaN, NaN, NaN },
-                    {3, 3,   1,   NaN, NaN },
-                    {2, 2,   3,   1,   NaN },
-                    {2, 2,   3,   2,   1   },
+                    {1, NaN },
+                    {1, 1   }
                 },
                 new double[,] // К2
                 {
-                    {1, NaN, NaN, NaN, NaN },
-                    {3, 1,   NaN, NaN, NaN },
-                    {1, 3,   1,   NaN, NaN },
-                    {3, 1,   3,   1,   NaN },
-                    {3, 1,   3,   1,   1   },
+                    {1, NaN  },
+                    {1, 1    },
                 },
                 new double[,] // К3
                 {
-                    {1, NaN, NaN, NaN, NaN },
-                    {1, 1,   NaN, NaN, NaN },
-                    {1, 1,   1,   NaN, NaN },
-                    {3, 2,   3,   1,   NaN },
-                    {1, 1,   1,   2,   1   },
+                    {1, NaN },
+                    {1, 1   }
                 },
                 new double[,] // К4
                 {
-                    {1, NaN, NaN, NaN, NaN },
-                    {1, 1,   NaN, NaN, NaN },
-                    {1, 1,   1,   NaN, NaN },
-                    {1, 3,   3,   1,   NaN },
-                    {1, 1,   1,   3,   1   },
+                    {1, NaN },
+                    {1, 1   }
                 }
             };
-            double[][] listK = new double[k][];
-            for (int K = 0; K < k; K++)
+            double[][] listK = new double[matrixK.Length][];
+            for (int K = 0; K < matrixK.Length; K++)
             {
                 Console.WriteLine($"Критерий К{K}");
-                for (int i = 0; i < k; i++)
-                    for (int j = i + 1; j < k; j++)
-                    {
+                for (int i = 0; i < matrixK[K].GetLength(0); i++)
+                    for (int j = i + 1; j < matrixK[K].GetLength(1); j++)
                         matrixK[K][i, j] = 1 / matrixK[K][j, i];
-                    }
                 Console.WriteLine(matrixK[K].TableToString());
                 listK[K] = SearchOSWa(matrixK[K]);
             }
-            double[] W = new double[k];
-            for(int i = 0; i < k; i++)
-                for(int j = 0; j < k; j++)
+            double[] W = new double[matrixA.GetLength(0)];
+            for (int i = 0; i < W.Length; i++)
+                for (int j = 0; j < Wc.Length; j++)
                     W[i] += Wc[j] * listK[j][i];
             Console.WriteLine($"\n\nW (вектор приоритетов): {string.Join(", ", W)}");
         }
