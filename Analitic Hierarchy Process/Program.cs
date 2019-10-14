@@ -29,34 +29,7 @@ namespace Analitic_Hierarchy_Process
                     Console.Write(matrixA[i, j] + "\t");
                 Console.WriteLine();
             }
-            double[] V = new double[5];
-            double V1 = Math.Pow(matrixA[0, 0] * matrixA[0, 1] * matrixA[0, 2] * matrixA[0, 3] * matrixA[0, 4], 1.0 / 5);
-            double V2 = Math.Pow(1 / matrixA[0, 1] * matrixA[1, 1] * matrixA[1, 2] * matrixA[1, 3] * matrixA[1, 4], 1.0 / 5);
-            double V3 = Math.Pow(1 / matrixA[0, 2] * (1 / matrixA[1, 2]) * matrixA[2, 2] * matrixA[2, 3] * matrixA[2, 4], 1.0 / 5);
-            double V4 = Math.Pow(1 / matrixA[0, 3] * (1 / matrixA[1, 3]) * (1 / matrixA[2, 3]) * matrixA[3, 3] * matrixA[3, 4], 1.0 / 5);
-            double V5 = Math.Pow(1 / matrixA[0, 4] * (1 / matrixA[1, 4]) * (1 / matrixA[2, 4]) * (1 / matrixA[3, 4]) * matrixA[4, 4], 1.0 / 5);
-            double sumVi = V1 + V2 + V3 + V4 + V5;
-            double Wc1 = V1 / sumVi;
-            double Wc2 = V2 / sumVi;
-            double Wc3 = V3 / sumVi;
-            double Wc4 = V4 / sumVi;
-            double Wc5 = V5 / sumVi;
-            Console.WriteLine($"Wci вектор приоритетов: {Wc1}, {Wc2}, {Wc3}, {Wc4}, {Wc5}.");
-            double S1 = matrixA[0, 0] + (1 / matrixA[0, 1]) + (1 / matrixA[0, 2]) + (1 / matrixA[0, 3]) + (1 / matrixA[0, 4]);
-            double S2 = matrixA[0, 1] + matrixA[1, 1] + (1 / matrixA[1, 2]) + (1 / matrixA[1, 3]) + (1 / matrixA[1, 4]);
-            double S3 = matrixA[0, 2] + matrixA[1, 2] + matrixA[2, 2] + (1 / matrixA[2, 3]) + (1 / matrixA[2, 4]);
-            double S4 = matrixA[0, 3] + matrixA[1, 3] + matrixA[2, 3] + matrixA[3, 3] + (1 / matrixA[3, 4]);
-            double S5 = matrixA[0, 4] + matrixA[1, 4] + matrixA[2, 4] + matrixA[3, 4] + matrixA[4, 4];
-            double P1 = S1 * Wc1;
-            double P2 = S2 * Wc2;
-            double P3 = S3 * Wc3;
-            double P4 = S4 * Wc4;
-            double P5 = S5 * Wc5;
-            double Ymax = P1 + P2 + P3 + P4 + P5;
-            double IS = (Ymax - k) / (k - 1);
-            double OS = IS / SI[k];
-            Console.WriteLine($"Максимальное среднее значение: {Ymax}\n" +
-                $"Отношение согласованности: {OS}\n\n");
+            double[] Wc = SearchOSWa(matrixA);
 
             double[][,] matrixK = {
                 new double[,] // K0
@@ -112,7 +85,6 @@ namespace Analitic_Hierarchy_Process
                 listK[K] = SearchOSWa(matrixK[K]);
             }
             double[] W = new double[k];
-            double[] Wc = { Wc1, Wc2, Wc3, Wc4, Wc5 };
             for(int i = 0; i < k; i++)
                 for(int j = 0; j < k; j++)
                     W[i] += Wc[j] * listK[j][i];
