@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 
 namespace Analitic_Hierarchy_Process
 {
@@ -51,6 +50,16 @@ namespace Analitic_Hierarchy_Process
                     {1, 1   }
                 }
             };
+            int CountExemplars = 0;
+            foreach (double[,] array in matrixK)
+            {
+                if (array.Rank != 2)
+                    throw new ArgumentException();
+                if (CountExemplars == 0)
+                    CountExemplars = array.GetLength(0);
+                if (array.GetLength(0) != CountExemplars || array.GetLength(1) != CountExemplars)
+                    throw new ArgumentException();
+            }
             double[][] listK = new double[matrixK.Length][];
             for (int K = 0; K < matrixK.Length; K++)
             {
@@ -61,7 +70,7 @@ namespace Analitic_Hierarchy_Process
                 Console.WriteLine(matrixK[K].TableToString());
                 listK[K] = SearchOSWa(matrixK[K]);
             }
-            double[] W = new double[matrixA.GetLength(0)];
+            double[] W = new double[CountExemplars];
             for (int i = 0; i < W.Length; i++)
                 for (int j = 0; j < Wc.Length; j++)
                     W[i] += Wc[j] * listK[j][i];
