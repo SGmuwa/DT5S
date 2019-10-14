@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 
 namespace Analitic_Hierarchy_Process
 {
     class Program
     {
-        public static void Main(string[] args)
+        public static void Main()
         {
             int k = 5;
             Console.WriteLine("Матрица парных суждений");
@@ -20,15 +21,8 @@ namespace Analitic_Hierarchy_Process
             };
             for (int j = 0; j < k; j++)
                 for (int i = j + 1; i < k; i++)
-                {
                     matrixA[i, j] = 1 / matrixA[j, i];
-                }
-            for (int i = 0; i < k; i++)
-            {
-                for (int j = 0; j < k; j++)
-                    Console.Write(matrixA[i, j] + "\t");
-                Console.WriteLine();
-            }
+            Console.WriteLine(matrixA.TableToString());
             double[] Wc = SearchOSWa(matrixA);
 
             double[][,] matrixK = {
@@ -76,12 +70,13 @@ namespace Analitic_Hierarchy_Process
             double[][] listK = new double[k][];
             for (int K = 0; K < k; K++)
             {
-                Console.WriteLine($"Критерий К{K}\n\n");
+                Console.WriteLine($"Критерий К{K}");
                 for (int i = 0; i < k; i++)
                     for (int j = i + 1; j < k; j++)
                     {
                         matrixK[K][i, j] = 1 / matrixK[K][j, i];
                     }
+                Console.WriteLine(matrixK[K].TableToString());
                 listK[K] = SearchOSWa(matrixK[K]);
             }
             double[] W = new double[k];
@@ -92,10 +87,9 @@ namespace Analitic_Hierarchy_Process
         }
 
         /// <summary>
-        /// Поиск векторы приоритетов.
+        /// Поиск векторов приоритетов.
         /// </summary>
-        /// <param name="array"></param>
-        /// <returns></returns>
+        /// <returns>Приоритеты.</returns>
         public static double[] SearchOSWa(double[,] array)
         {
             if (array.GetLength(0) != array.GetLength(1) || array.Rank != 2)
@@ -116,7 +110,6 @@ namespace Analitic_Hierarchy_Process
             double[] Wa = new double[k];
             for (int i = 0; i < k; i++)
                 Wa[i] = V[i] / sumVi;
-            Console.WriteLine($"Вектор приоритетов Wki:\nWki (вектор приоритетов): {string.Join(", ", Wa)}");
             double[] S = new double[k];
             for (int i = 0; i < k; i++)
                 for (int j = 0; j < k; j++)
@@ -128,10 +121,8 @@ namespace Analitic_Hierarchy_Process
 
             double IS = (Ymax - k) / (k - 1);
             double OS = IS / SI[k]; // Отклонение от согласованности (Индекс Согласованности (ИС))
-            Console.WriteLine($"Ymax (максимальное среднее значение) = {Ymax}\n" +
-                $"ОС = {OS}"); // Отношение согласованности (OC)
             if (OS > OSok)
-                Console.WriteLine($"OS = {OS}. Expected {OSok} or less.");
+                Console.WriteLine($"Отношение согласованности = {OS}. Ожидалось {OSok} или меньше.");
             return Wa;
         }
 
