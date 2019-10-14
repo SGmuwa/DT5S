@@ -148,7 +148,7 @@ namespace Analitic_Hierarchy_Process
             double[] S = new double[k];
             for (int i = 0; i < k; i++)
                 for (int j = 0; j < k; j++)
-                    S[i] += array[i, j];
+                    S[j] += array[i, j];
             double[] P = new double[k];
             for (int i = 0; i < k; i++)
                 P[i] = S[i] * Wa[i];
