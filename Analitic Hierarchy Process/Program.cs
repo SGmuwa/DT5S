@@ -11,45 +11,38 @@ namespace Analitic_Hierarchy_Process
         {
             Console.WriteLine("Матрица парных суждений");
             double[,] matrixA = {
-                {1,   1,   2,   4,   5 },
-                {NaN, 1,   3,   5,   5 },
-                {NaN, NaN, 1,   3,   5 },
-                {NaN, NaN, NaN, 1,   5 },
-                {NaN, NaN, NaN, NaN, 1 }
+                /*
+                {1, N }, Второй критерий лучше первого. Балл: 9.
+                {9, 1 },
+                 */
+                {1, N },
+                {9, 1 },
             };
-            for (int j = 0; j < matrixA.GetLength(0); j++)
-                for (int i = j + 1; i < matrixA.GetLength(1); i++)
-                    matrixA[i, j] = 1 / matrixA[j, i];
+            for (int i = 0; i < matrixA.GetLength(0); i++)
+                for (int j = 0; j < matrixA.GetLength(1); j++)
+                    if(double.IsNaN(matrixA[j, i]))
+                        matrixA[j, i] = 1 / matrixA[i, j];
             Console.WriteLine(matrixA.TableToString());
             double[] Wc = SearchOSWa(matrixA);
 
             double[][,] matrixK = {
                 new double[,] // K0
                 {
-                    {1, NaN },
-                    {1, 1   }
+                    {1, N },
+                    {5, 1 }
                 },
                 new double[,] // К1
                 {
-                    {1, NaN },
-                    {1, 1   }
-                },
-                new double[,] // К2
-                {
-                    {1, NaN  },
-                    {1, 1    },
-                },
-                new double[,] // К3
-                {
-                    {1, NaN },
-                    {1, 1   }
-                },
-                new double[,] // К4
-                {
-                    {1, NaN },
-                    {1, 1   }
+                    /*
+                     {1, 5 }, Первый лучше второго на 5 баллов.
+                     {N, 1 }
+                     */
+                    {1, 5 },
+                    {N, 1 }
                 }
             };
+            if (matrixK.Length != matrixA.GetLength(0))
+                throw new ArgumentException();
             int CountExemplars = 0;
             foreach (double[,] array in matrixK)
             {
@@ -65,8 +58,9 @@ namespace Analitic_Hierarchy_Process
             {
                 Console.WriteLine($"Критерий К{K}");
                 for (int i = 0; i < matrixK[K].GetLength(0); i++)
-                    for (int j = i + 1; j < matrixK[K].GetLength(1); j++)
-                        matrixK[K][i, j] = 1 / matrixK[K][j, i];
+                    for (int j = 0; j < matrixK[K].GetLength(1); j++)
+                        if(double.IsNaN(matrixK[K][i, j]))
+                            matrixK[K][i, j] = 1 / matrixK[K][j, i];
                 Console.WriteLine(matrixK[K].TableToString());
                 listK[K] = SearchOSWa(matrixK[K]);
             }
@@ -117,7 +111,7 @@ namespace Analitic_Hierarchy_Process
             return Wa;
         }
 
-        private static readonly double NaN = double.NaN;
+        private static readonly double N = double.NaN;
         /// <summary>
         /// Среднее значение индекса случайной согласованности.
         /// Для определения того, насколько точно ИС отражает согласованность
