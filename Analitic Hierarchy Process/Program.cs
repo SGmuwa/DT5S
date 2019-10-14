@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Analitic_Hierarchy_Process
 {
@@ -7,31 +9,32 @@ namespace Analitic_Hierarchy_Process
     {
         public static void Main(string[] args)
         {
-            int n = 5;
+            int k = 5;
             Console.WriteLine("Матрица парных суждений");
-            double[,] matrix1 = {
+            double[,] matrixA = {
                 {1,   1,   2,   4,   5 },
                 {NaN, 1,   3,   5,   5 },
                 {NaN, NaN, 1,   3,   5 },
                 {NaN, NaN, NaN, 1,   5 },
                 {NaN, NaN, NaN, NaN, 1 },
             };
-            for (int j = 0; j < 5; j++)
-                for (int i = j + 1; i < 5; i++)
+            for (int j = 0; j < k; j++)
+                for (int i = j + 1; i < k; i++)
                 {
-                    matrix1[i, j] = 1 / matrix1[j, i];
+                    matrixA[i, j] = 1 / matrixA[j, i];
                 }
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < k; i++)
             {
-                for (int j = 0; j < 5; j++)
-                    Console.Write(matrix1[i, j] + "\t");
+                for (int j = 0; j < k; j++)
+                    Console.Write(matrixA[i, j] + "\t");
                 Console.WriteLine();
             }
-            double V1 = Math.Pow(matrix1[0, 0] * matrix1[0, 1] * matrix1[0, 2] * matrix1[0, 3] * matrix1[0, 4], 1.0 / 5);
-            double V2 = Math.Pow(1 / matrix1[0, 1] * matrix1[1, 1] * matrix1[1, 2] * matrix1[1, 3] * matrix1[1, 4], 1.0 / 5);
-            double V3 = Math.Pow(1 / matrix1[0, 2] * (1 / matrix1[1, 2]) * matrix1[2, 2] * matrix1[2, 3] * matrix1[2, 4], 1.0 / 5);
-            double V4 = Math.Pow(1 / matrix1[0, 3] * (1 / matrix1[1, 3]) * (1 / matrix1[2, 3]) * matrix1[3, 3] * matrix1[3, 4], 1.0 / 5);
-            double V5 = Math.Pow(1 / matrix1[0, 4] * (1 / matrix1[1, 4]) * (1 / matrix1[2, 4]) * (1 / matrix1[3, 4]) * matrix1[4, 4], 1.0 / 5);
+            double[] V = new double[5];
+            double V1 = Math.Pow(matrixA[0, 0] * matrixA[0, 1] * matrixA[0, 2] * matrixA[0, 3] * matrixA[0, 4], 1.0 / 5);
+            double V2 = Math.Pow(1 / matrixA[0, 1] * matrixA[1, 1] * matrixA[1, 2] * matrixA[1, 3] * matrixA[1, 4], 1.0 / 5);
+            double V3 = Math.Pow(1 / matrixA[0, 2] * (1 / matrixA[1, 2]) * matrixA[2, 2] * matrixA[2, 3] * matrixA[2, 4], 1.0 / 5);
+            double V4 = Math.Pow(1 / matrixA[0, 3] * (1 / matrixA[1, 3]) * (1 / matrixA[2, 3]) * matrixA[3, 3] * matrixA[3, 4], 1.0 / 5);
+            double V5 = Math.Pow(1 / matrixA[0, 4] * (1 / matrixA[1, 4]) * (1 / matrixA[2, 4]) * (1 / matrixA[3, 4]) * matrixA[4, 4], 1.0 / 5);
             double sumVi = V1 + V2 + V3 + V4 + V5;
             double Wc1 = V1 / sumVi;
             double Wc2 = V2 / sumVi;
@@ -39,159 +42,142 @@ namespace Analitic_Hierarchy_Process
             double Wc4 = V4 / sumVi;
             double Wc5 = V5 / sumVi;
             Console.WriteLine($"Wci вектор приоритетов: {Wc1}, {Wc2}, {Wc3}, {Wc4}, {Wc5}.");
-            double S1 = matrix1[0, 0] + (1 / matrix1[0, 1]) + (1 / matrix1[0, 2]) + (1 / matrix1[0, 3]) + (1 / matrix1[0, 4]);
-            double S2 = matrix1[0, 1] + matrix1[1, 1] + (1 / matrix1[1, 2]) + (1 / matrix1[1, 3]) + (1 / matrix1[1, 4]);
-            double S3 = matrix1[0, 2] + matrix1[1, 2] + matrix1[2, 2] + (1 / matrix1[2, 3]) + (1 / matrix1[2, 4]);
-            double S4 = matrix1[0, 3] + matrix1[1, 3] + matrix1[2, 3] + matrix1[3, 3] + (1 / matrix1[3, 4]);
-            double S5 = matrix1[0, 4] + matrix1[1, 4] + matrix1[2, 4] + matrix1[3, 4] + matrix1[4, 4];
+            double S1 = matrixA[0, 0] + (1 / matrixA[0, 1]) + (1 / matrixA[0, 2]) + (1 / matrixA[0, 3]) + (1 / matrixA[0, 4]);
+            double S2 = matrixA[0, 1] + matrixA[1, 1] + (1 / matrixA[1, 2]) + (1 / matrixA[1, 3]) + (1 / matrixA[1, 4]);
+            double S3 = matrixA[0, 2] + matrixA[1, 2] + matrixA[2, 2] + (1 / matrixA[2, 3]) + (1 / matrixA[2, 4]);
+            double S4 = matrixA[0, 3] + matrixA[1, 3] + matrixA[2, 3] + matrixA[3, 3] + (1 / matrixA[3, 4]);
+            double S5 = matrixA[0, 4] + matrixA[1, 4] + matrixA[2, 4] + matrixA[3, 4] + matrixA[4, 4];
             double P1 = S1 * Wc1;
             double P2 = S2 * Wc2;
             double P3 = S3 * Wc3;
             double P4 = S4 * Wc4;
             double P5 = S5 * Wc5;
             double Ymax = P1 + P2 + P3 + P4 + P5;
-            double IS = (Ymax - n) / (n - 1);
-            double OS = IS / SI;
+            double IS = (Ymax - k) / (k - 1);
+            double OS = IS / SI[k];
             Console.WriteLine($"Максимальное среднее значение: {Ymax}\n" +
                 $"Отношение согласованности: {OS}\n\n");
 
-            ///Критерий K1
-            Console.WriteLine("Критерий К1\n\n");
-            double[,] matrixK1 = {
-                {1, NaN, NaN, NaN, NaN},
-                {3, 1,   NaN, NaN, NaN},
-                {2, 3,   1,   NaN, NaN},
-                {3, 5,   3,   1,   NaN,},
-                {3, 2,   2,   3,   1},
-            };
-
-            for (int i = 0; i < 5; i++)
-                for (int j = i + 1; j < 5; j++)
+            double[][,] matrixK = {
+                new double[,] // K0
                 {
-                    matrixK1[i, j] = 1 / matrixK1[j, i];
-                }
-            List<double> listK1 = Function(matrixK1, 5);
-
-            //Критерий К2
-            Console.WriteLine("\nКритерий К2");
-            double[,] matrixK2 = {
-                {1, NaN, NaN, NaN, NaN },
-                {1, 1,   NaN, NaN, NaN },
-                {3, 3,   1,   NaN, NaN },
-                {2, 2,   3,   1,   NaN },
-                {2, 2,   3,   2,   1   },
-            };
-            for (int i = 0; i < 5; i++)
-                for (int j = i + 1; j < 5; j++)
+                    {1, NaN, NaN, NaN, NaN },
+                    {3, 1,   NaN, NaN, NaN },
+                    {2, 3,   1,   NaN, NaN },
+                    {3, 5,   3,   1,   NaN },
+                    {3, 2,   2,   3,   1   },
+                },
+                new double[,] // К1
                 {
-                    matrixK2[i, j] = 1 / matrixK2[j, i];
+                    {1, NaN, NaN, NaN, NaN },
+                    {1, 1,   NaN, NaN, NaN },
+                    {3, 3,   1,   NaN, NaN },
+                    {2, 2,   3,   1,   NaN },
+                    {2, 2,   3,   2,   1   },
+                },
+                new double[,] // К2
+                {
+                    {1, NaN, NaN, NaN, NaN },
+                    {3, 1,   NaN, NaN, NaN },
+                    {1, 3,   1,   NaN, NaN },
+                    {3, 1,   3,   1,   NaN },
+                    {3, 1,   3,   1,   1   },
+                },
+                new double[,] // К3
+                {
+                    {1, NaN, NaN, NaN, NaN },
+                    {1, 1,   NaN, NaN, NaN },
+                    {1, 1,   1,   NaN, NaN },
+                    {3, 2,   3,   1,   NaN },
+                    {1, 1,   1,   2,   1   },
+                },
+                new double[,] // К4
+                {
+                    {1, NaN, NaN, NaN, NaN },
+                    {1, 1,   NaN, NaN, NaN },
+                    {1, 1,   1,   NaN, NaN },
+                    {1, 3,   3,   1,   NaN },
+                    {1, 1,   1,   3,   1   },
                 }
-            List<double> listK2 = Function(matrixK2, 5);
-
-            ///Критерий K3
-            Console.WriteLine("\nКритерий К3");
-            double[,] matrixK3 = {
-                {1, NaN, NaN, NaN, NaN },
-                {3, 1,   NaN, NaN, NaN },
-                {1, 3,   1,   NaN, NaN },
-                {3, 1,   3,   1,   NaN },
-                {3, 1,   3,   1,   1   },
             };
-
-            for (int i = 0; i < 5; i++)
-                for (int j = i + 1; j < 5; j++)
-                    matrixK3[i, j] = 1 / matrixK3[j, i];
-
-            List<double> listK3 = Function(matrixK3, 5);
-            ///Критерий K4
-            Console.WriteLine("\nКритерий K4");
-            double[,] matrixK4 = {
-                {1, NaN, NaN, NaN, NaN },
-                {1, 1,   NaN, NaN, NaN },
-                {1, 1,   1,   NaN, NaN },
-                {3, 2,   3,   1,   NaN },
-                {1, 1,   1,   2,   1   },
-            };
-            for (int i = 0; i < 5; i++)
-                for (int j = i + 1; j < 5; j++)
-                    matrixK4[i, j] = 1 / matrixK4[j, i];
-            List<double> listK4 = Function(matrixK4, 5);
-            ///Критерий K5
-            Console.WriteLine("\nКритерий K5");
-            double[,] matrixK5 = {
-                {1, NaN, NaN, NaN, NaN },
-                {1, 1, NaN, NaN, NaN },
-                {1, 1, 1, NaN, NaN },
-                {1, 3, 3, 1, NaN },
-                {1, 1, 1, 3, 1},
-            };
-            for (int i = 0; i < 5; i++)
-                for (int j = i + 1; j < 5; j++)
-                    matrixK5[i, j] = 1 / matrixK5[j, i];
-            List<double> listK5 = Function(matrixK5, 5);
-            double W1 = Wc1 * listK1[1] + Wc2 * listK2[1] + Wc3 * listK3[1] + Wc4 * listK4[1] + Wc5 * listK5[1];
-            double W2 = Wc1 * listK1[2] + Wc2 * listK2[2] + Wc3 * listK3[2] + Wc4 * listK4[2] + Wc5 * listK5[2];
-            double W3 = Wc1 * listK1[3] + Wc2 * listK2[3] + Wc3 * listK3[3] + Wc4 * listK4[3] + Wc5 * listK5[3];
-            double W4 = Wc1 * listK1[4] + Wc2 * listK2[4] + Wc3 * listK3[4] + Wc4 * listK4[4] + Wc5 * listK5[4];
-            double W5 = Wc1 * listK1[5] + Wc2 * listK2[5] + Wc3 * listK3[5] + Wc4 * listK4[5] + Wc5 * listK5[5];
-            Console.WriteLine($"\n\nW (вектор приоритетов): {W1}, {W2}, {W3}, {W4}, {W5}");
+            double[][] listK = new double[k][];
+            for (int K = 0; K < k; K++)
+            {
+                Console.WriteLine($"Критерий К{K}\n\n");
+                for (int i = 0; i < k; i++)
+                    for (int j = i + 1; j < k; j++)
+                    {
+                        matrixK[K][i, j] = 1 / matrixK[K][j, i];
+                    }
+                listK[K] = SearchOSWa(matrixK[K]);
+            }
+            double[] W = new double[k];
+            double[] Wc = { Wc1, Wc2, Wc3, Wc4, Wc5 };
+            for(int i = 0; i < k; i++)
+                for(int j = 0; j < k; j++)
+                    W[i] += Wc[j] * listK[j][i];
+            Console.WriteLine($"\n\nW (вектор приоритетов): {string.Join(", ", W)}");
         }
 
-        public static List<double> Function(double[,] array, int k)
+        /// <summary>
+        /// Поиск векторы приоритетов.
+        /// </summary>
+        /// <param name="array"></param>
+        /// <returns></returns>
+        public static double[] SearchOSWa(double[,] array)
         {
-            double V1 = 1;
-            double V2 = 1;
-            double V3 = 1;
-            double V4 = 1;
-            double V5 = 1;
+            if (array.GetLength(0) != array.GetLength(1) || array.Rank != 2)
+                throw new ArgumentException();
+            int k = array.GetLength(0);
+            double[] V = new double[k];
             // Вычисление вектора приоритетов по данной матрице по каждой строке.
             for (int i = 0; i < k; i++)
+            {
+                V[i] = 1;
                 for (int j = 0; j < k; j++)
-                {
-                    if (i == 0) V1 *= array[i, j];
-                    if (i == 1) V2 *= array[i, j];
-                    if (i == 2) V3 *= array[i, j];
-                    if (i == 3) V4 *= array[i, j];
-                    if (i == 4) V5 *= array[i, j];
-                }
-            V1 = Math.Pow(V1, 1.0 / 5);
-            V2 = Math.Pow(V2, 1.0 / 5);
-            V3 = Math.Pow(V3, 1.0 / 5);
-            V4 = Math.Pow(V4, 1.0 / 5);
-            V5 = Math.Pow(V5, 1.0 / 5);
+                    V[i] *= array[i, j];
+                V[i] = Math.Pow(V[i], 1.0 / k);
+            }
             // Нормирующий коэффициент.
-            double sumVi = V1 + V2 + V3 + V4 + V5;
-            double Wa1 = V1 / sumVi;
-            double Wa2 = V2 / sumVi;
-            double Wa3 = V3 / sumVi;
-            double Wa4 = V4 / sumVi;
-            double Wa5 = V5 / sumVi;
-            Console.WriteLine($"Вектор приоритетов Wki:\nWki (вектор приоритетов): {Wa1}, {Wa2}, {Wa3}, {Wa4}, {Wa5}");
-            double S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0;
+
+            double sumVi = V.Sum();
+            double[] Wa = new double[k];
+            for (int i = 0; i < k; i++)
+                Wa[i] = V[i] / sumVi;
+            Console.WriteLine($"Вектор приоритетов Wki:\nWki (вектор приоритетов): {string.Join(", ", Wa)}");
+            double[] S = new double[k];
             for (int i = 0; i < k; i++)
                 for (int j = 0; j < k; j++)
-                {
-                    if (j == 0) S1 += array[i, j];
-                    if (j == 1) S2 += array[i, j];
-                    if (j == 2) S3 += array[i, j];
-                    if (j == 3) S4 += array[i, j];
-                    if (j == 4) S5 += array[i, j];
-                }
-            double Р1 = S1 * Wa1;
-            double Р2 = S2 * Wa2;
-            double Р3 = S3 * Wa3;
-            double P4 = S4 * Wa4;
-            double Р5 = S5 * Wa5;
-            double Ymax = Р1 + Р2 + Р3 + P4 + Р5;
+                    S[i] += array[i, j];
+            double[] P = new double[k];
+            for (int i = 0; i < k; i++)
+                P[i] = S[i] * Wa[i];
+            double Ymax = P.Sum();
 
             double IS = (Ymax - k) / (k - 1);
-            double OS = IS / SI; // Отклонение от согласованности (Индекс Согласованности (ИС))
+            double OS = IS / SI[k]; // Отклонение от согласованности (Индекс Согласованности (ИС))
             Console.WriteLine($"Ymax (максимальное среднее значение) = {Ymax}\n" +
                 $"ОС = {OS}"); // Отношение согласованности (OC)
-            return new List<double> { OS, Wa1, Wa2, Wa3, Wa4, Wa5 };
+            if (OS > OSok)
+                Console.WriteLine($"OS = {OS}. Expected {OSok} or less.");
+            return Wa;
         }
 
         private static readonly double NaN = double.NaN;
-        private static readonly double SI = 1.12;
+        /// <summary>
+        /// Среднее значение индекса случайной согласованности.
+        /// Для определения того, насколько точно ИС отражает согласованность
+        /// суждений его необходимо сравнить со случайным индексом (СИ)
+        /// согласованности, который соответствует матрице со случайными суждениями,
+        /// выбранными из данной шкалы.
+        /// </summary>
+        private static readonly ReadOnlyDictionary<int, double> SI =
+            new ReadOnlyDictionary<int, double>(
+                new Dictionary<int, double>()
+                {
+                    [1] = 0.00, [2] = 0.00, [3] = 0.58, [4] = 0.90, [5] = 1.12, [6] = 1.24, [7] = 1.32, [8] = 1.41, [9] = 1.45, [10] = 1.49, [11] = 1.51, [12] = 1.48, [13] = 1.56, [14] = 1.57, [15] = 1.59
+                });
+
+        private const double OSok = 0.1;
     }
 }

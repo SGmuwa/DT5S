@@ -20,7 +20,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Electra", "Electra\Electra.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{DF514836-3A7A-4E2C-A57C-B7682A60DAC3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analitic Hierarchy Process", "Analitic Hierarchy Process\Analitic Hierarchy Process.csproj", "{BD9D11CB-E753-4C64-A0FF-0959806AA4EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Analitic Hierarchy Process", "Analitic Hierarchy Process\Analitic Hierarchy Process.csproj", "{BD9D11CB-E753-4C64-A0FF-0959806AA4EE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
