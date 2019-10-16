@@ -23,7 +23,7 @@ namespace Analitic_Hierarchy_Process
                 for (int j = 0; j < matrixA.GetLength(1); j++)
                     if(double.IsNaN(matrixA[j, i]))
                         matrixA[j, i] = 1 / matrixA[i, j];
-            Console.WriteLine(matrixA.TableToString());
+            Console.WriteLine(matrixA.TableToString("G2"));
             double[] Wc = SearchOSWa(matrixA);
 
             double[][,] matrixK = {
@@ -33,18 +33,18 @@ namespace Analitic_Hierarchy_Process
                      {1, 5 }, Первый лучше второго на 5 баллов.
                      {N, 1 }
                      */
-                    {1, N, N, N, N, N, N, N, N, 3, }, // 0 Алёна   120 - 75 = 45
-                    {3, 1, 1, N, N, N, N, N, 5, 9, }, // 5 Мама     85 - 75 = 10
-                    {3, 1, 1, N, N, N, N, N, 4, 9, }, // 3 Пётр     85 - 75 = 10
-                    {7, 4, 4, 1, N, N, N, N, 5, 9, }, // 8 Ольга    80 - 75 = 5
-                    {9, 7, 7, 3, 1, 1, 2, 4, 8, 9, }, // 4 Ирина    75 - 75 = 0
-                    {9, 7, 7, 3, 1, 1, 2, 4, 8, 9, }, // 7 Галина   75 - 75 = 0
-                    {8, 5, 6, 6, N, N, 1, 5, 6, 8, }, // 9 Зинаида  74 - 75 = -1
-                    {7, 4, 3, 2, N, N, N, 1, 4, 6, }, // 1 Елена    70 - 75 = -5
-                    {2, N, N, N, N, N, N, N, 1, 6, }, // 6 Наташа   60 - 75 = -15
-                    {N, N, N, N, N, N, N, N, N, 1, }, // 2 Мой кот   4 - 75 = -71
-                //   А  М  П  О  И  Г  З  Е  Н  МК 
-                //   0  5  3  8  4  7  9  1  6  2  
+                    {1, N, 3, N, N, N, N, N, N, N }, // 0 Алёна   120 - 75 = 45
+                    {7, 1, 6, 3, N, 4, 4, N, 2, N }, // 1 Елена    70 - 75 = -5
+                    {N, N, 1, N, N, N, N, N, N, N }, // 2 Мой кот   4 - 75 = -71
+                    {3, N, 9, 1, N, 1, 4, N, N, N }, // 3 Пётр     85 - 75 = 10
+                    {9, 4, 9, 7, 1, 7, 8, 1, 3, 2 }, // 4 Ирина    75 - 75 = 0
+                    {3, N, 9, 1, N, 1, 5, N, N, N }, // 5 Мама     85 - 75 = 10
+                    {2, N, 6, N, N, N, 1, N, N, N }, // 6 Наташа   60 - 75 = -15
+                    {9, 4, 9, 7, 1, 7, 8, 1, 3, 2 }, // 7 Галина   75 - 75 = 0
+                    {7, N, 9, 4, N, 4, 5, N, 1, N }, // 8 Ольга    80 - 75 = 5
+                    {8, 5, 8, 6, N, 5, 6, N, 6, 1 }  // 9 Зинаида  74 - 75 = -1
+                //   А  Е  МК П  И  М  Н  Г  О  З  
+                //   0  1  2  3  4  5  6  7  8  9  
                 },
                 new double[,] // Зарплата
                 {
@@ -82,14 +82,15 @@ namespace Analitic_Hierarchy_Process
                     for (int j = 0; j < matrixK[K].GetLength(1); j++)
                         if(double.IsNaN(matrixK[K][i, j]))
                             matrixK[K][i, j] = 1 / matrixK[K][j, i];
-                Console.WriteLine(matrixK[K].TableToString());
+                Console.WriteLine(matrixK[K].TableToString("N2"));
                 listK[K] = SearchOSWa(matrixK[K]);
             }
             double[] W = new double[CountExemplars];
             for (int i = 0; i < W.Length; i++)
                 for (int j = 0; j < Wc.Length; j++)
                     W[i] += Wc[j] * listK[j][i];
-            Console.WriteLine($"\n\nW (вектор приоритетов): {string.Join(", ", W)}\nЛучше всех: {W.Max()}");
+            int indexMax = W.IndexMax();
+            Console.WriteLine($"\n\nW (вектор приоритетов): {string.Join(", ", W.Select((d) => d.ToString("N2")))}\nЛучше всех: {indexMax} ({W[indexMax]})");
         }
 
         /// <summary>
