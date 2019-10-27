@@ -22,6 +22,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\Unit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Analitic Hierarchy Process", "Analitic Hierarchy Process\Analitic Hierarchy Process.csproj", "{BD9D11CB-E753-4C64-A0FF-0959806AA4EE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Simplex", "Simplex\Simplex.csproj", "{B3431B28-9BDD-4FA6-AF5D-A82922043399}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +110,18 @@ Global
 		{BD9D11CB-E753-4C64-A0FF-0959806AA4EE}.Release|x64.Build.0 = Release|Any CPU
 		{BD9D11CB-E753-4C64-A0FF-0959806AA4EE}.Release|x86.ActiveCfg = Release|Any CPU
 		{BD9D11CB-E753-4C64-A0FF-0959806AA4EE}.Release|x86.Build.0 = Release|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Debug|x64.Build.0 = Debug|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Debug|x86.Build.0 = Debug|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Release|x64.ActiveCfg = Release|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Release|x64.Build.0 = Release|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Release|x86.ActiveCfg = Release|Any CPU
+		{B3431B28-9BDD-4FA6-AF5D-A82922043399}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
