@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Simplex
 {
@@ -15,17 +16,18 @@ namespace Simplex
         {
             int perem = 2; // Переменных 2
             int N = 4; // Ограничений 4
-            Console.WriteLine("Программа реализована для 2 переменных и 4 уравнений в системе");
-            Console.WriteLine("Если в симплекс таблице элемент - буква, то необходимо ввести: -0");
+            Console.WriteLine("Программа реализована для 2 переменных и 4 уравнений в системе"
+             + "Если в симплекс таблице элемент - буква, то необходимо ввести: -0"
+             + "Формат записи координат: [строка, столбец]."
+             + "Введите элементы симплекс таблицы по строкам! Для решения исходной задачи: ");
             double[,] matrix;
-            double[,] matrix2;
+            double[,] subMatrix;
             matrix = new double[N + 3, perem + 3]; // Строк, столбцов
-            matrix2 = new double[N, perem]; // Строк, столбцов
-            List<double> list = new List<double>();
-            IList<double> list2 = new double[N];
-            Console.WriteLine("Введите элементы симплекс таблицы по строкам! Для решения исходной задачи: ");
+            subMatrix = new double[N, perem]; // Строк, столбцов
             for (int y = 0; y < N + 3; y++) {
-                for (int x = 0; x < perem + 3; x++) { // Столбцы
+                for (int x = 0; x < perem + 3; x++) // Столбцы
+                {
+                    Console.Write($"[{y}, {x}]: ");
                     if (!double.TryParse(Console.ReadLine(), out matrix[y, x]))
                     {
                         Console.WriteLine("Вы ввели не корректное число");
@@ -33,13 +35,15 @@ namespace Simplex
                     }
                 }
             }
-            for (int x = 0; x < perem; x++) //Коэффициенты целевой функции
-                list.Add(matrix[0, x + 2]);
-            for (int y = 0, i = 0; y < N; y++) //свободные
-                list2[i++] = matrix[y + 2, perem + 2];
+            IList<double> targetParams = new double[perem];
+            IList<double> freeParams = new double[N];
+            for (int x = 0; x < perem; x++) // Коэффициенты целевой функции
+                targetParams[x] = matrix[0, x + 2];
+            for (int y = 0, i = 0; y < N; y++) // Свободные
+                freeParams[i++] = matrix[y + 2, perem + 2];
             for (int y = 0; y < N; y++)
                 for (int x = 0; x < perem; x++)
-                    matrix2[y, x] = matrix[y + 2, x + 2];
+                    subMatrix[y, x] = matrix[y + 2, x + 2];
             Console.WriteLine("\n");
             int tmpPerem = perem;
             int index = 1;
@@ -71,27 +75,25 @@ namespace Simplex
                 }
 
             Console.WriteLine($"Коэффициенты целевой функции для двойственной задачи:\n"
-                + $"{string.Join("  ", list2)}\n\n" // Свободные
+                + $"{string.Join("  ", freeParams)}\n\n" // Свободные
                 + $"Транспонированная матрица для двойственной задачи:");
-            double[,] transMatrix = new double[perem, N];
-            transMatrix = matrix2.Transpose();
-            for (int t = 0; t < perem; t++) {
+            double[,] transMatrix = subMatrix.Transpose();
+            for (int t = 0; t < perem; t++)
+            {
                 for (int m = 0; m < N; m++)
-                    Console.Write($"{transMatrix[t, m], 6 : N4}");
+                    Console.Write($"{transMatrix[t, m], 6}");
                 Console.WriteLine();
             }
-            Console.WriteLine($"Свободные коэфициенты для двойственной задачи:\n{string.Join("  ", list)}");
-            int forlist3 = 0;
+            Console.WriteLine($"Свободные коэфициенты для двойственной задачи:\n{string.Join("  ", targetParams)}");
             Console.WriteLine("\n\nБазисные переменные из последней симплекс таблицы:");
-            List<int> list3 = new List<int>();
+            IList<int> baseVars = new int[N];
             for (int k = 0; k < N; k++) // Сохранение базисных переменных
             {
-                forlist3 = (int) matrix[k + 2, 1];
-                list3.Add(forlist3);
-                Console.Write(list3[k] + " ");
+                baseVars[k] = (int)matrix[k + 2, 1];
+                Console.Write(baseVars[k] + " ");
             }
             Console.WriteLine();
-            double max_profit = matrix[N + 2, perem + 2]; // ответ прибыль 53
+            double max_profit = matrix[N + 2, perem + 2]; // Ответ прибыль 53
             int numBasisPerem = N; double[,] matrixBasis;
             matrixBasis = new double[numBasisPerem, numBasisPerem]; // строк, столбцов
             for (int t = 0; t < numBasisPerem; t++)
@@ -99,55 +101,35 @@ namespace Simplex
                     matrixBasis[t, k] = k == t
                         ? 1
                         : 0;
-            int tempIndex = -1; double[,] matrixD;
+            double[,] matrixD;
             matrixD = new double[N, N];//строк, столбцов
             for (int t = 0; t < N; t++)
                 for (int k = 0; k < N; k++)
                     matrixD[t, k] = 0;
             int @in = 0;
-            for (int indexBasis = 0; indexBasis < list3.Count; indexBasis++)
+            for (int indexBasis = 0; indexBasis < baseVars.Count; indexBasis++)
             {
-                if (list3[indexBasis] <= perem) {
-                    tempIndex = list3[indexBasis];
-                    for (int c = 0; c < N; c++) {
-                        matrixD[c, @in] = matrix2[c, tempIndex - 1];
-                    }
-                    @in++;
-                }
-                else if (list3[indexBasis] > perem)
-                {
-                    tempIndex = list3[indexBasis];
+                int tempIndex = baseVars[indexBasis];
+                if (baseVars[indexBasis] <= perem)
+                    for (int c = 0; c < N; c++)
+                        matrixD[c, @in] = subMatrix[c, tempIndex - 1];
+                else // if (baseVars[indexBasis] > perem)
                     for (int c = 0; c < N; c++)
                         matrixD[c, @in] = matrixBasis[c, tempIndex - 3];
-                    @in++;
-                }
+                @in++;
             }
-            Console.WriteLine("\nСоставленная матрица D");
-            for (int d = 0; d < N; d++) {
-                for (int t = 0; t < N; t++)
-                    Console.Write(matrixD[d, t] + "\t");
-                Console.WriteLine();
-            }
-            Console.WriteLine("\nОбратная Матрица D");
+            Console.WriteLine($"\nСоставленная матрица D:\n{matrixD.TableToString()}");
             matrixD = matrixD.Inversion();
-            for (int y = 0; y < matrixD.GetLength(0); y++) {
-                for (int x = 0; x < matrixD.GetLength(1); x++)
-                    Console.Write(matrixD[y, x] + "\t");
-                Console.WriteLine();
-            }
-            list3.Clear(); // базисный вектор 5 3 0 0
-            Console.WriteLine("Базисиный вектор");
-            for (int d = 0; d < N; d++) {
-                int tmp = (int) matrix[d + 2, 0];
-                list3.Add(tmp);
-                Console.Write(list3[d] + "  ");
-            }
-            Console.WriteLine();
+            Console.WriteLine($"\nОбратная Матрица D:\n{matrixD.TableToString()}");
+            baseVars.Clear(); // Базисный вектор 5 3 0 0.
+            for (int i = 0; i < baseVars.Count; i++)
+                baseVars[i] = (int) matrix[i + 2, 0];
+            Console.WriteLine($"Базисный вектор:\n{string.Join(" ", baseVars)}\n");
             double result = 0;
             List<double> list4 = new List<double>();
             for (int t = 0; t < N; t++) {
                 for (int k = 0; k < N; k++)
-                    result += matrixD[k, t] * list3[k];
+                    result += matrixD[k, t] * baseVars[k];
                 list4.Add(result);
                 result = 0;
             }
@@ -155,7 +137,7 @@ namespace Simplex
             for (int t = 0; t < list4.Count; t++)
                 Console.WriteLine("" + list4[t]);
             for (int t = 0; t < N; t++)
-                result += list2[t] * list4[t];
+                result += freeParams[t] * list4[t];
             Console.WriteLine("Получившийся вектор умножаем на свободные коэфициенты прямой задачи. Результат для Gmin: " + result);
             Console.WriteLine("Результат для Fmax: " + max_profit);
         }
@@ -313,6 +295,54 @@ namespace Simplex
                 for (int j = 0; j < m.GetLength(1); j++)
                     temp[j, i] = m[i, j];
             return temp;
+        }
+
+        /// <summary>
+        /// Преобразует объект в строку, ставляя дополнительные пробелы,
+        /// чтобы подогнать под размер len.
+        /// </summary>
+        /// <param name="toInsert">Объект, который надо преобразовать в строку.</param>
+        /// <param name="len">Минимальная длинна выходной строки.</param>
+        /// <returns>Строка, представляющая объект toInstert.</returns>
+        internal static string ToString(this object toInsert, int len)
+                    => string.Format(string.Format("{{0, {0}}}", len), toInsert);
+
+        /// <summary>
+        /// Преобразует объект в строку заданного формата, ставляя дополнительные пробелы,
+        /// чтобы подогнать под размер len.
+        /// </summary>
+        /// <param name="toInsert">Объект, который надо преобразовать в строку.</param>
+        /// <param name="len">Минимальная длинна выходной строки.</param>
+        /// <param name="format">Формат вывода.</param>
+        /// <returns>Строка, предсталвяющая объект toInstert.</returns>
+        internal static string ToString(this object toInsert, int len, string format)
+                    => string.Format(string.Format("{{0, {0} :{1}}}", len, format), toInsert);        
+
+        /// <summary>
+        /// Превращает двухмерную таблицу в строку.
+        /// </summary>
+        /// <param name="array">Таблица.</param>
+        /// <param name="format">Формат вывода каждого элемента.</param>
+        /// <returns>Строковое представление каждого элемента массива в виде таблицы.</returns>
+        internal static string TableToString(this Array array, string format = null)
+        {
+            if (array.Rank != 2)
+                throw new NotSupportedException();
+            int max = -1;
+            foreach (var a in array)
+                if (a.ToString(0, format).Length > max)
+                    max = a.ToString(0, format).Length;
+            max++;
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < array.GetLength(0); i++)
+            {
+                for (int j = 0; j < array.GetLength(1); j++)
+                {
+                    sb.Append(array.GetValue(i, j).ToString(max, format));
+                }
+                sb.Append('\n');
+            }
+            return sb.ToString();
         }
     }
 }
