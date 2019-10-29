@@ -10,22 +10,22 @@ namespace Simplex
     public static class Simplex
     {
         /// <summary>
-        /// Запускает завимодействие пользователя с симплекс-методом.
+        /// Запускает взаимодействие пользователя с симплекс-методом.
         /// </summary>
         public static void UI()
         {
-            int perem = 2; // Переменных 2
-            int N = 4; // Ограничений 4
-            Console.WriteLine("Программа реализована для 2 переменных и 4 уравнений в системе"
-             + "Если в симплекс таблице элемент - буква, то необходимо ввести: -0"
-             + "Формат записи координат: [строка, столбец]."
+            int countVars = 2; // Переменных 2
+            int countLimits = 4; // Ограничений 4
+            Console.WriteLine("Программа реализована для 2 переменных и 4 уравнений в системе.\n"
+             + "Если в симплекс таблице элемент - буква, то необходимо ввести: -0\n"
+             + "Формат записи координат: [строка, столбец].\n"
              + "Введите элементы симплекс таблицы по строкам! Для решения исходной задачи: ");
             double[,] matrix;
             double[,] subMatrix;
-            matrix = new double[N + 3, perem + 3]; // Строк, столбцов
-            subMatrix = new double[N, perem]; // Строк, столбцов
-            for (int y = 0; y < N + 3; y++) {
-                for (int x = 0; x < perem + 3; x++) // Столбцы
+            matrix = new double[countLimits + 3, countVars + 3]; // Строк, столбцов
+            subMatrix = new double[countLimits, countVars]; // Строк, столбцов
+            for (int y = 0; y < countLimits + 3; y++) {
+                for (int x = 0; x < countVars + 3; x++) // Столбцы
                 {
                     Console.Write($"[{y}, {x}]: ");
                     if (!double.TryParse(Console.ReadLine(), out matrix[y, x]))
@@ -35,42 +35,38 @@ namespace Simplex
                     }
                 }
             }
-            IList<double> targetParams = new double[perem];
-            IList<double> freeParams = new double[N];
-            for (int x = 0; x < perem; x++) // Коэффициенты целевой функции
+            IList<double> targetParams = new double[countVars];
+            IList<double> freeParams = new double[countLimits];
+            for (int x = 0; x < countVars; x++) // Коэффициенты целевой функции
                 targetParams[x] = matrix[0, x + 2];
-            for (int y = 0, i = 0; y < N; y++) // Свободные
-                freeParams[i++] = matrix[y + 2, perem + 2];
-            for (int y = 0; y < N; y++)
-                for (int x = 0; x < perem; x++)
+            for (int y = 0, i = 0; y < countLimits; y++) // Свободные
+                freeParams[i++] = matrix[y + 2, countVars + 2];
+            for (int y = 0; y < subMatrix.GetLength(0); y++)
+                for (int x = 0; x < subMatrix.GetLength(1); x++)
                     subMatrix[y, x] = matrix[y + 2, x + 2];
             Console.WriteLine("\n");
-            int tmpPerem = perem;
-            int index = 1;
-            int jndex = 0;
-            while (tmpPerem != 0) {
-                double delta = GetDelta(matrix, index++, N, perem);
-                matrix[N + 3 - 1, jndex + 2] = delta;
-                tmpPerem--;
-                jndex++;
-                double Q = GetDelta(matrix, 0, N, perem); // A0
-                matrix[N + 3 - 1, perem + 3 - 1] = Q;
+            for(int tmpVar = countVars, index_1 = 1, index_2 = 0; tmpVar != 0; index_1++, index_2++, tmpVar--)
+            {
+                double delta = GetDelta(matrix, index_1, countLimits, countVars);
+                matrix[countLimits + 2, index_2 + 2] = delta;
+                double Q = GetDelta(matrix, 0, countLimits, countVars); // A0
+                matrix[countLimits + 2, countVars + 2] = Q;
             }
             Console.WriteLine("Решение исходной задачи симплекс-методом:");
-            for (int k = 0; k < perem; k++)
-                if (matrix[N + 3 - 1, k + 2] < 0)
+            for (int y = 0; y < countVars; y++)
+                if (matrix[countLimits + 2, y + 2] < 0)
                 {
-                    int razreshColumn = PermitColumn(matrix, N, perem);
-                    int razreshString = PermitString(matrix, razreshColumn, N, perem);
-                    matrix = NewSimplexMatrix(matrix, N + 3, perem + 3, razreshColumn, razreshString);
-                    for (int d = 0; d < N + 3; d++)
+                    int targetColumn = PermitColumn(matrix, countLimits, countVars);
+                    int targetString = PermitString(matrix, targetColumn, countLimits, countVars);
+                    matrix = NewSimplexMatrix(matrix, countLimits + 3, countVars + 3, targetColumn, targetString);
+                    for (int d = 0; d < countLimits + 3; d++)
                     {
-                        for (int t = 0; t < perem + 3; t++)
+                        for (int t = 0; t < countVars + 3; t++)
                             Console.Write(matrix[d, t] + "\t");
                         Console.WriteLine();
                     }
                     Console.WriteLine("\n");
-                    k = -1;
+                    y = -1;
                     continue;
                 }
 
@@ -78,43 +74,40 @@ namespace Simplex
                 + $"{string.Join("  ", freeParams)}\n\n" // Свободные
                 + $"Транспонированная матрица для двойственной задачи:");
             double[,] transMatrix = subMatrix.Transpose();
-            for (int t = 0; t < perem; t++)
+            for (int t = 0; t < countVars; t++)
             {
-                for (int m = 0; m < N; m++)
+                for (int m = 0; m < countLimits; m++)
                     Console.Write($"{transMatrix[t, m], 6}");
                 Console.WriteLine();
             }
-            Console.WriteLine($"Свободные коэфициенты для двойственной задачи:\n{string.Join("  ", targetParams)}");
+            Console.WriteLine($"Свободные коэффициенты для двойственной задачи:\n{string.Join("  ", targetParams)}");
             Console.WriteLine("\n\nБазисные переменные из последней симплекс таблицы:");
-            IList<int> baseVars = new int[N];
-            for (int k = 0; k < N; k++) // Сохранение базисных переменных
+            IList<int> baseVars = new int[countLimits];
+            for (int k = 0; k < countLimits; k++) // Сохранение базисных переменных
             {
                 baseVars[k] = (int)matrix[k + 2, 1];
                 Console.Write(baseVars[k] + " ");
             }
             Console.WriteLine();
-            double max_profit = matrix[N + 2, perem + 2]; // Ответ прибыль 53
-            int numBasisPerem = N; double[,] matrixBasis;
-            matrixBasis = new double[numBasisPerem, numBasisPerem]; // строк, столбцов
-            for (int t = 0; t < numBasisPerem; t++)
-                for (int k = 0; k < numBasisPerem; k++)
+            double max_profit = matrix[countLimits + 2, countVars + 2]; // Ответ прибыль 53
+            int numBasisVar = countLimits; double[,] matrixBasis;
+            matrixBasis = new double[numBasisVar, numBasisVar]; // строк, столбцов
+            for (int t = 0; t < numBasisVar; t++)
+                for (int k = 0; k < numBasisVar; k++)
                     matrixBasis[t, k] = k == t
                         ? 1
                         : 0;
             double[,] matrixD;
-            matrixD = new double[N, N];//строк, столбцов
-            for (int t = 0; t < N; t++)
-                for (int k = 0; k < N; k++)
-                    matrixD[t, k] = 0;
+            matrixD = new double[countLimits, countLimits]; // строк, столбцов
             int @in = 0;
             for (int indexBasis = 0; indexBasis < baseVars.Count; indexBasis++)
             {
                 int tempIndex = baseVars[indexBasis];
-                if (baseVars[indexBasis] <= perem)
-                    for (int c = 0; c < N; c++)
+                if (baseVars[indexBasis] <= countVars)
+                    for (int c = 0; c < countLimits; c++)
                         matrixD[c, @in] = subMatrix[c, tempIndex - 1];
-                else // if (baseVars[indexBasis] > perem)
-                    for (int c = 0; c < N; c++)
+                else // if (baseVars[indexBasis] > countVar)
+                    for (int c = 0; c < countLimits; c++)
                         matrixD[c, @in] = matrixBasis[c, tempIndex - 3];
                 @in++;
             }
@@ -127,8 +120,8 @@ namespace Simplex
             Console.WriteLine($"Базисный вектор:\n{string.Join(" ", baseVars)}\n");
             double result = 0;
             List<double> list4 = new List<double>();
-            for (int t = 0; t < N; t++) {
-                for (int k = 0; k < N; k++)
+            for (int t = 0; t < countLimits; t++) {
+                for (int k = 0; k < countLimits; k++)
                     result += matrixD[k, t] * baseVars[k];
                 list4.Add(result);
                 result = 0;
@@ -136,10 +129,10 @@ namespace Simplex
             result = 0; Console.WriteLine("Базисный вектор (5,3,0,0) умножаем на обратную матрицу D");
             for (int t = 0; t < list4.Count; t++)
                 Console.WriteLine("" + list4[t]);
-            for (int t = 0; t < N; t++)
+            for (int t = 0; t < countLimits; t++)
                 result += freeParams[t] * list4[t];
-            Console.WriteLine("Получившийся вектор умножаем на свободные коэфициенты прямой задачи. Результат для Gmin: " + result);
-            Console.WriteLine("Результат для Fmax: " + max_profit);
+            Console.WriteLine("Получившийся вектор умножаем на свободные коэффициенты прямой задачи. Результат для G -> min: " + result);
+            Console.WriteLine("Результат для F -> max: " + max_profit);
         }
 
         /// <summary>
@@ -147,19 +140,19 @@ namespace Simplex
         /// </summary>
         /// <param name="matrix"></param>
         /// <param name="a"></param>
-        /// <param name="N"></param>
-        /// <param name="perem"></param>
+        /// <param name="countLimits"></param>
+        /// <param name="countVar"></param>
         /// <returns></returns>
-        public static double GetDelta(double[,] matrix, int a, int N, int perem)
+        public static double GetDelta(double[,] matrix, int a, int countLimits, int countVar)
         {
             double delta = 0;
             if (a != 0) {
-                for (int i = 2; i < N + 2 - 1; i++)
+                for (int i = 2; i < countLimits + 2 - 1; i++)
                     delta += matrix[i, 0] * matrix[i, a + 1];
                 delta = delta - matrix[0, a + 1];
             } else if (a == 0) {
-                for (int i = 2; i < N + 2 - 1; i++)
-                    delta += matrix[i, 0] * matrix[i, perem + 3 - 1];
+                for (int i = 2; i < countLimits + 2 - 1; i++)
+                    delta += matrix[i, 0] * matrix[i, countVar + 2];
             }
             return delta;
         }
@@ -168,19 +161,19 @@ namespace Simplex
         /// Нахождение разрешающего столбца.
         /// </summary>
         /// <param name="matrix"></param>
-        /// <param name="N"></param>
-        /// <param name="perem"></param>
+        /// <param name="countLimits"></param>
+        /// <param name="countVars"></param>
         /// <returns></returns>
-        private static int PermitColumn(double[,] matrix, int N, int perem)
+        private static int PermitColumn(double[,] matrix, int countLimits, int countVars)
         {
             double[] mas;
-            mas = new double[perem];
-            for (int i = 0; i < perem; i++) {
-                mas[i] = matrix[N + 3 - 1, i + 2];
+            mas = new double[countVars];
+            for (int i = 0; i < countVars; i++) {
+                mas[i] = matrix[countLimits + 2, i + 2];
             }
             double min_elem = mas[0];
             int index_min_elem = 0;
-            for (int j = 1; j < perem; j++)
+            for (int j = 1; j < countVars; j++)
                 if ((mas[j] < min_elem) && mas[j] < 0) {
                     min_elem = mas[j];
                     index_min_elem = j;
@@ -192,17 +185,17 @@ namespace Simplex
         /// Нахождение разрешающей строки.
         /// </summary>
         /// <param name="matrix"></param>
-        /// <param name="razreshColumn">Индекс разрешающего столбца.</param>
-        /// <param name="N"></param>
-        /// <param name="perem"></param>
+        /// <param name="targetColumn">Индекс разрешающего столбца.</param>
+        /// <param name="countLimits">Количество ограничений.</param>
+        /// <param name="countVars">Количество переменных.</param>
         /// <returns></returns>
-        private static int PermitString(double[,] matrix, int razreshColumn, int N, int perem) {
-            double[] mas; mas = new double[N + 2]; mas[0] = -0; mas[1] = -0;
+        private static int PermitString(double[,] matrix, int targetColumn, int countLimits, int countVars) {
+            double[] mas; mas = new double[countLimits + 2]; mas[0] = -0; mas[1] = -0;
             double min_elem = 0; int index_min_elem;
-            for (int i = 2; i < N + 2; i++)
-                mas[i] = matrix[i, perem + 2] / matrix[i, razreshColumn];
+            for (int i = 2; i < countLimits + 2; i++)
+                mas[i] = matrix[i, countVars + 2] / matrix[i, targetColumn];
             min_elem = mas[2]; index_min_elem = 2;
-            for (int j = 3; j < N + 2; j++)
+            for (int j = 3; j < countLimits + 2; j++)
                 if (mas[j] > 0 && mas[j] < min_elem) {
                     min_elem = mas[j];
                     index_min_elem = j;
@@ -222,28 +215,26 @@ namespace Simplex
             matrix2[0, permitColumn] = matrix[permitString, 0];
             matrix2[permitString, 1] = matrix[1, permitColumn];
             matrix2[1, permitColumn] = matrix[permitString, 1];
-            double razreshElemetn = matrix[permitString, permitColumn];
-            for (int k = 2; k <= colum - 1; k++) //разрешающая строка (просмотр столбцов) было к = 4
-            {
-                if (k != permitColumn) {
-                    matrix2[permitString, k] = matrix[permitString, k] / razreshElemetn;
-                }
-            }
-            for (int k = 2; k <= strSipleks - 1; k++) //разрешающая столбец (просмотр строк) было к = 6
-            {
-                if (k != permitString) {
-                    matrix2[k, permitColumn] = (-1) * (matrix[k, permitColumn] / razreshElemetn);
-                }
-            }
-            matrix2[permitString, permitColumn] = 1 / razreshElemetn;
+            double targetElement = matrix[permitString, permitColumn];
+            for (int k = 2; k < colum; k++) // Разрешающая строка (просмотр столбцов) было к = 4
+                if (k != permitColumn)
+                    matrix2[permitString, k] = matrix[permitString, k] / targetElement;
+            for (int k = 2; k < strSipleks; k++) // Разрешающая столбец (просмотр строк) было к = 6
+                if (k != permitString)
+                    matrix2[k, permitColumn] = (-1) * (matrix[k, permitColumn] / targetElement);
+            matrix2[permitString, permitColumn] = 1 / targetElement;
             for (int str = 2; str < strSipleks; str++)
-                for (int col = 2; col < colum; col++) //столбцы  было col < 5
+                for (int col = 2; col < colum; col++) // столбцы  было col < 5
                     if (str != permitString && col != permitColumn)
-                        matrix2[str, col] = (matrix[str, col] * razreshElemetn - matrix[permitString, col] * matrix[str, permitColumn]) / razreshElemetn;
+                        matrix2[str, col] = (matrix[str, col] * targetElement - matrix[permitString, col] * matrix[str, permitColumn]) / targetElement;
             return matrix2;
         }
 
-
+        /// <summary>
+        /// Создаёт обратную матрицу из входной.
+        /// </summary>
+        /// <param name="input">Матрица, которую надо инвертировать.</param>
+        /// <returns>Новая матрица, которая обратна к входной.</returns>
         public static double[,] Inversion(this double[,] input)
         {
             double[,] output = (double[,])input.Clone();
@@ -298,7 +289,7 @@ namespace Simplex
         }
 
         /// <summary>
-        /// Преобразует объект в строку, ставляя дополнительные пробелы,
+        /// Преобразует объект в строку, вставляя дополнительные пробелы,
         /// чтобы подогнать под размер len.
         /// </summary>
         /// <param name="toInsert">Объект, который надо преобразовать в строку.</param>
@@ -308,13 +299,13 @@ namespace Simplex
                     => string.Format(string.Format("{{0, {0}}}", len), toInsert);
 
         /// <summary>
-        /// Преобразует объект в строку заданного формата, ставляя дополнительные пробелы,
-        /// чтобы подогнать под размер len.
+        /// Преобразует объект в строку заданного формата, вставляя дополнительные пробелы,
+        /// чтобы подогнать под размер <code>len</code>.
         /// </summary>
         /// <param name="toInsert">Объект, который надо преобразовать в строку.</param>
         /// <param name="len">Минимальная длинна выходной строки.</param>
         /// <param name="format">Формат вывода.</param>
-        /// <returns>Строка, предсталвяющая объект toInstert.</returns>
+        /// <returns>Строка, представляющая объект <code>toInstert</code>.</returns>
         internal static string ToString(this object toInsert, int len, string format)
                     => string.Format(string.Format("{{0, {0} :{1}}}", len, format), toInsert);        
 
