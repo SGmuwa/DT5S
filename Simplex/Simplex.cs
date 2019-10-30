@@ -31,7 +31,7 @@ namespace Simplex
                     if (!double.TryParse(Console.ReadLine(), out matrix[y, x]))
                     {
                         Console.WriteLine("Вы ввели не корректное число");
-                        y--;
+                        x--;
                     }
                 }
             }
@@ -83,10 +83,10 @@ namespace Simplex
             Console.WriteLine($"Свободные коэффициенты для двойственной задачи:\n{string.Join("  ", targetParams)}");
             Console.WriteLine("\n\nБазисные переменные из последней симплекс таблицы:");
             IList<int> baseVars = new int[countLimits];
-            for (int k = 0; k < countLimits; k++) // Сохранение базисных переменных
+            for (int y = 0; y < countLimits; y++) // Сохранение базисных переменных
             {
-                baseVars[k] = (int)matrix[k + 2, 1];
-                Console.Write(baseVars[k] + " ");
+                baseVars[y] = (int)matrix[y + 2, 1];
+                Console.Write(baseVars[y] + " ");
             }
             Console.WriteLine();
             double max_profit = matrix[countLimits + 2, countVars + 2]; // Ответ прибыль 53
@@ -114,7 +114,7 @@ namespace Simplex
             Console.WriteLine($"\nСоставленная матрица D:\n{matrixD.TableToString()}");
             matrixD = matrixD.Inversion();
             Console.WriteLine($"\nОбратная Матрица D:\n{matrixD.TableToString()}");
-            baseVars.Clear(); // Базисный вектор 5 3 0 0.
+            // Базисный вектор 5 3 0 0.
             for (int i = 0; i < baseVars.Count; i++)
                 baseVars[i] = (int) matrix[i + 2, 0];
             Console.WriteLine($"Базисный вектор:\n{string.Join(" ", baseVars)}\n");
