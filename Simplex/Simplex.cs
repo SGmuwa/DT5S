@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 namespace Simplex
@@ -14,8 +16,8 @@ namespace Simplex
         /// </summary>
         public static void UI()
         {
-            int countVars = 2; // Переменных 2
-            int countLimits = 4; // Ограничений 4
+            int countVars = GetNumber("Введите количество переменных (основных столбцов): ", new TryParseHandler<int>(int.TryParse));
+            int countLimits = GetNumber("Введите количество ограничений (основных строк): ", new TryParseHandler<int>(int.TryParse));
             Console.WriteLine("Программа реализована для 2 переменных и 4 уравнений в системе.\n"
              + "Если в симплекс таблице элемент - буква, то необходимо ввести: -0\n"
              + "Формат записи координат: [строка, столбец].\n"
@@ -24,17 +26,9 @@ namespace Simplex
             double[,] subMatrix;
             matrix = new double[countLimits + 3, countVars + 3]; // Строк, столбцов
             subMatrix = new double[countLimits, countVars]; // Строк, столбцов
-            for (int y = 0; y < countLimits + 3; y++) {
+            for (int y = 0; y < countLimits + 3; y++)
                 for (int x = 0; x < countVars + 3; x++) // Столбцы
-                {
-                    Console.Write($"[{y}, {x}]: ");
-                    if (!double.TryParse(Console.ReadLine(), out matrix[y, x]))
-                    {
-                        Console.WriteLine("Вы ввели не корректное число");
-                        x--;
-                    }
-                }
-            }
+                    matrix[y, x] = GetNumber($"[{y}, {x}]: ", new TryParseHandler<double>(double.TryParse));
             IList<double> targetParams = new double[countVars];
             IList<double> freeParams = new double[countLimits];
             for (int x = 0; x < countVars; x++) // Коэффициенты целевой функции
@@ -52,20 +46,15 @@ namespace Simplex
                 double Q = GetDelta(matrix, 0, countLimits, countVars); // A0
                 matrix[countLimits + 2, countVars + 2] = Q;
             }
-            Console.WriteLine("Решение исходной задачи симплекс-методом:");
+            Console.WriteLine($"Входная таблица:\n{matrix.TableToString(null, (a) => Math.Round((double)a, 3))}\n"
+                + "Решение исходной задачи симплекс-методом:");
             for (int y = 0; y < countVars; y++)
                 if (matrix[countLimits + 2, y + 2] < 0)
                 {
                     int targetColumn = PermitColumn(matrix, countLimits, countVars);
                     int targetString = PermitString(matrix, targetColumn, countLimits, countVars);
                     matrix = NewSimplexMatrix(matrix, countLimits + 3, countVars + 3, targetColumn, targetString);
-                    for (int d = 0; d < countLimits + 3; d++)
-                    {
-                        for (int t = 0; t < countVars + 3; t++)
-                            Console.Write(matrix[d, t] + "\t");
-                        Console.WriteLine();
-                    }
-                    Console.WriteLine("\n");
+                    Console.WriteLine($"Разрешающий элемент: [{targetString}, {targetColumn}], таблица:\n{matrix.TableToString(null, (a) => Math.Round((double)a, 3))}");
                     y = -1;
                     continue;
                 }
@@ -98,23 +87,10 @@ namespace Simplex
                         ? 1
                         : 0;
             double[,] matrixD;
-            matrixD = new double[countLimits, countLimits]; // строк, столбцов
-            int @in = 0;
-            for (int indexBasis = 0; indexBasis < baseVars.Count; indexBasis++)
-            {
-                int tempIndex = baseVars[indexBasis];
-                if (baseVars[indexBasis] <= countVars)
-                    for (int c = 0; c < countLimits; c++)
-                        matrixD[c, @in] = subMatrix[c, tempIndex - 1];
-                else // if (baseVars[indexBasis] > countVar)
-                    for (int c = 0; c < countLimits; c++)
-                        matrixD[c, @in] = matrixBasis[c, tempIndex - 3];
-                @in++;
-            }
+            matrixD = GenerateMatrixD(countLimits, countVars, baseVars, subMatrix, matrixBasis);
             Console.WriteLine($"\nСоставленная матрица D:\n{matrixD.TableToString()}");
             matrixD = matrixD.Inversion();
             Console.WriteLine($"\nОбратная Матрица D:\n{matrixD.TableToString()}");
-            // Базисный вектор 5 3 0 0.
             for (int i = 0; i < baseVars.Count; i++)
                 baseVars[i] = (int) matrix[i + 2, 0];
             Console.WriteLine($"Базисный вектор:\n{string.Join(" ", baseVars)}\n");
@@ -135,15 +111,60 @@ namespace Simplex
             Console.WriteLine("Результат для F -> max: " + max_profit);
         }
 
+		private static double[,] GenerateMatrixD(int countLimits, int countVars, IList<int> baseVars, double[,] subMatrix, double[,] matrixBasis)
+		{
+            double[,] output = new double[countLimits, countLimits]; // строк, столбцов
+            int @in = 0;
+            for (int indexBasis = 0; indexBasis < baseVars.Count; indexBasis++)
+            {
+                int tempIndex = baseVars[indexBasis];
+                if (baseVars[indexBasis] <= countVars)
+                    for (int c = 0; c < countLimits; c++)
+                        output[c, @in] = subMatrix[c, tempIndex - 1];
+                else // if (baseVars[indexBasis] > countVar)
+                    for (int c = 0; c < countLimits; c++)
+                        output[c, @in] = matrixBasis[c, tempIndex - 3];
+                @in++;
+            }
+            return output;
+		}
+
+		/// <summary>
+		/// Считывает с пользовательского интерфейса объект.
+		/// </summary>
+		/// <param name="message">Сообщение, которое надо напечатать пользователю.</param>
+		/// <param name="parse">Метод считывания TryParse, с помощью которого будет преобразована строка в объект.</param>
+		/// <typeparam name="T">Указывает, в какой тип надо преобразовывать объект.</typeparam>
+		/// <returns>Считанный объект от пользователя.</returns>
+		public static T GetNumber<T>(string message, TryParseHandler<T> parse)
+		{
+            while(true)
+            {
+                Console.WriteLine(message);
+                if(parse(Console.ReadLine(), out T output))
+                    return output;
+                Console.WriteLine($"\"{output}\" не может быть прочитан с помощью {parse.Method}");
+            }
+		}
+
         /// <summary>
-        /// Расчёт относительных оценок и оптимального плана.
+        /// Класс-делекат, который описывает интерфейс функций TryParse.
         /// </summary>
-        /// <param name="matrix"></param>
-        /// <param name="a"></param>
-        /// <param name="countLimits"></param>
-        /// <param name="countVar"></param>
-        /// <returns></returns>
-        public static double GetDelta(double[,] matrix, int a, int countLimits, int countVar)
+        /// <param name="inputStr">Входная строка, которую надо преобразовать в объект.</param>
+        /// <param name="result">Указатель на результат выполнения.</param>
+        /// <typeparam name="T">Требуемый тип искомого объекта.</typeparam>
+        /// <returns>True, если чтение удачно. Иначе - false.</returns>
+		public delegate bool TryParseHandler<T>(string inputStr, out T result);
+
+		/// <summary>
+		/// Расчёт относительных оценок и оптимального плана.
+		/// </summary>
+		/// <param name="matrix"></param>
+		/// <param name="a"></param>
+		/// <param name="countLimits"></param>
+		/// <param name="countVar"></param>
+		/// <returns></returns>
+		public static double GetDelta(double[,] matrix, int a, int countLimits, int countVar)
         {
             double delta = 0;
             if (a != 0) {
@@ -312,13 +333,24 @@ namespace Simplex
         /// <summary>
         /// Превращает двухмерную таблицу в строку.
         /// </summary>
-        /// <param name="array">Таблица.</param>
+        /// <param name="input">Таблица.</param>
         /// <param name="format">Формат вывода каждого элемента.</param>
+        /// <param name="renderForeach">Функция преобразования </param>
         /// <returns>Строковое представление каждого элемента массива в виде таблицы.</returns>
-        internal static string TableToString(this Array array, string format = null)
+        internal static string TableToString(this Array input, string format = null, Func<dynamic, object> renderForeach = null)
         {
-            if (array.Rank != 2)
+            if (input.Rank != 2)
                 throw new NotSupportedException();
+            Array array;
+            if(renderForeach == null)
+                array = input;
+            else
+            {
+                array = new object[input.GetLength(0), input.GetLength(1)];
+                for(int y = 0; y < array.GetLength(0); y++)
+                    for(int x = 0; x < array.GetLength(1); x++)
+                        array.SetValue(renderForeach(input.GetValue(y, x)), y, x);
+            }
             int max = -1;
             foreach (var a in array)
                 if (a.ToString(0, format).Length > max)

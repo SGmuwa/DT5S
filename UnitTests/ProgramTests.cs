@@ -10,7 +10,7 @@ namespace Electra.Tests
     public class ProgramTests
     {
         [TestMethod()]
-        public void PupysTest()
+        public void ElectraPupysTest()
         {
             Column price = new Column("Цена", 5, false);
             Column weight = new Column("Вес", 4, false);
@@ -72,7 +72,7 @@ namespace Electra.Tests
         }
 
         [TestMethod()]
-        public void SorokTest()
+        public void ElectraSorokTest()
         {
             Console.WriteLine("Begin.");
             Column price = new Column("Цена квартиры", 5, false);
