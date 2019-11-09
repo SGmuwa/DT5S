@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace Simplex
@@ -258,31 +257,51 @@ namespace Simplex
         /// <returns>Новая матрица, которая обратна к входной.</returns>
         public static double[,] Inversion(this double[,] input)
         {
-            double[,] matrixWidth = new double[input.GetLength(1), input.GetLength(0) * 2]; // Двойная матрица в ширину.
-            for(int y = 0; y < matrixWidth.GetLength(1); y++)
+            return inversion();
+            
+            double[,] inversion()
             {
-                for(int x = 0; x < matrixWidth.GetLength(0) / 2; x++)
-                    matrixWidth[y, x] = input[y, x]; // Входная матрица слева
-                for(int x = matrixWidth.GetLength(0); x < matrixWidth.GetLength(0); x++)
-                    matrixWidth[y, x] = y == x - matrixWidth.GetLength(0) ? 1 : 0; // Единичная матрица справа.
+                if(input.GetLength(1) != input.GetLength(0)) // Возможно излишняя проверка.
+                    throw new NotSupportedException("Поддерживаются только квадратные матрицы.");
+                double[,] matrixWidth = InitMatrixWidth(input);
+                do
+                {
+                    Console.WriteLine(matrixWidth.TableToString());
+                    int? badRow = SearchMaxNumbers(matrixWidth); // Ищет строку максимально плохую
+                    Console.WriteLine($"badRow: {badRow}");
+                    if(!badRow.HasValue)
+                        break;
+                    var rowCompensation = SearchRowForAddition(matrixWidth, badRow.Value);
+                    Console.WriteLine($"rowCompensation: ({rowCompensation.Item1}, [{string.Join(", ", rowCompensation.Item2)}])");
+                    FixRow(matrixWidth, badRow.Value, rowCompensation.Item1, rowCompensation.Item2);
+                } while(true);
+                MoveRowsIfNeed(matrixWidth); // Перемещает единицы на диагональ.
+                Console.WriteLine($"MoveRowsIfNeed:\n{matrixWidth.TableToString()}");
+                Normalize(matrixWidth); // Умножает каждую строку так, чтобы получились слева одни единицы.
+                Console.WriteLine($"Normalize:\n{matrixWidth.TableToString()}");
+                double[,] right = GetRightMatrix(matrixWidth);
+                Console.WriteLine($"GetRightMatrix:\n{right.TableToString()}");
+                return right;
             }
-            do
-            {
-                var badRow = SearchMaxNumbers(); // Ищет строку максимально плохую
-                if(badRow == null)
-                    break;
-                var rowCompensation = SearchRowForAddition(badRow);
-                FixRow(badRow, rowCompensation);
-            } while(true);
-            Normilize(); // Умножает каждую строку так, чтобы получились слева одни единицы.
-            MoveRowsIfNeed(); // Перемещает единицы на диагональ.
-            return GetLeftMatrix();
 
-            int? SearchMaxNumbers()
+            double[,] InitMatrixWidth(double[,] input)
+            {
+                double[,] output = new double[input.GetLength(0), input.GetLength(1) * 2]; // Двойная матрица в ширину.
+                for(int y = 0; y < output.GetLength(0); y++)
+                {
+                    for(int x = 0; x < output.GetLength(1) / 2; x++)
+                        output[y, x] = input[y, x]; // Входная матрица слева
+                    for(int x = output.GetLength(1) / 2; x < output.GetLength(1); x++)
+                        output[y, x] = y == x - output.GetLength(1) / 2 ? 1 : 0; // Единичная матрица справа.
+                }
+                return output;
+            }
+
+            int? SearchMaxNumbers(double[,] matrixWidth)
             {
                 int max = 1;
                 int? rowOutput = null;
-                for(int y = 0; y < matrixWidth.GetLength(1); y++)
+                for(int y = 0; y < matrixWidth.GetLength(0); y++)
                 {
                     int count = GetNumbersInRow(y);
                     if(count > max)
@@ -296,22 +315,120 @@ namespace Simplex
                 int GetNumbersInRow(int y)
                 {
                     int output = 0;
-                    for(int x = 0; x < matrixWidth.GetLength(0) / 2; x++)
+                    for(int x = 0; x < matrixWidth.GetLength(1) / 2; x++)
                         if(matrixWidth[y, x] != 0.0)
                             output++;
                     return output;
                 }
             }
             
-            int SearchRowForAddition(int badRow)
+            // Ищет строку, которую можно прибавить для исправления.
+            // Также возвращает множество индексов, которые подойдут для последующего исправления.
+            (int, ISet<int>) SearchRowForAddition(double[,] matrixWidth, int badRow)
             {
-                int indexOutput = -1;
+                ISet<int> indexesForFix = SearchIndexesForFix();
+                Console.WriteLine($"indexesForFix: [{string.Join(", ", indexesForFix)}]");
                 for(int y = 0; y < matrixWidth.GetLength(0); y++)
                 {
                     if(badRow == y)
                         continue;
-                    #error todo
+                    ISet<int> indexesNotEmpty = SearchNotEmptyIndexes(y);
+                    Console.WriteLine($"indexesNotEmpty[{y}]: [{string.Join(", ", indexesNotEmpty)}]");
+                    indexesNotEmpty.IntersectWith(indexesForFix); // Пересечение.
+                    Console.WriteLine($"indexesNotEmpty[{y}].IntersectWith(indexesForFix): [{string.Join(", ", indexesNotEmpty)}]");
+                    if(indexesNotEmpty.Count > 0)
+                        return (y, indexesNotEmpty);
                 }
+                throw new Exception($"Тупик в вычислениях. Текущий индекс: {matrixWidth}. "
+                    + $"Матрица:\n{matrixWidth.TableToString()}");
+
+                HashSet<int> SearchNotEmptyIndexes(int y)
+                {
+                    HashSet<int> output = new HashSet<int>();
+                    for(int x = 0; x < matrixWidth.GetLength(1) / 2; x++)
+                        if(matrixWidth[y, x] != 0.0)
+                            output.Add(x);
+                    return output;
+                }
+
+                HashSet<int> SearchIndexesForFix() // Возвращает индексы, которые надо починить.
+                {
+                    HashSet<int> output = SearchNotEmptyIndexes(badRow);
+                    //output.Remove(badRow);
+                    return output;
+                }
+            }
+
+            // Исправляет плохую матрицу, складывая к плохой строке хорошую с некоторым коэффициентом.
+            void FixRow(double[,] matrixWidth, int badRow, int rowForAdd, ISet<int> indexesGoodForAdd)
+            {
+                int indexColumnForAdd = indexesGoodForAdd.First();
+                Console.WriteLine($"indexColumnForAdd: {indexColumnForAdd}");
+                double CoefficientForAdd = -matrixWidth[badRow, indexColumnForAdd] / matrixWidth[rowForAdd, indexColumnForAdd];
+                Console.WriteLine($"CoefficientForAdd: {CoefficientForAdd}");
+                AddRow(badRow, rowForAdd, CoefficientForAdd);
+                matrixWidth[badRow, indexColumnForAdd] = 0.0; // Нормализация. Необходимо, чтобы не оставалось хвостов после запятой.
+
+                void AddRow(int badRow, int rowForAdd, double CoefficientForAdd)
+                {
+                    for(int x = 0; x < matrixWidth.GetLength(1); x++)
+                        matrixWidth[badRow, x] += matrixWidth[rowForAdd, x] * CoefficientForAdd;
+                }
+            }
+
+            // Делает единицы по диагонали.
+            void Normalize(double[,] matrixWidth)
+            {
+                for(int y = 0; y < matrixWidth.GetLength(0); y++)
+                {
+                    DivideMatrixRow(matrixWidth, y, matrixWidth[y, y]);
+                    matrixWidth[y, y] = 1.0; // Избавление от хвостов.
+                }
+
+                void DivideMatrixRow(double[,] matrix, int indexToDiv, double divisor)
+                {
+                    for(int x = 0; x < matrix.GetLength(1); x++)
+                        matrix[indexToDiv, x] /= divisor;
+                }
+            }
+
+            void MoveRowsIfNeed(double[,] matrixWidth)
+            {
+                for(int yx = 0; yx < matrixWidth.GetLength(0) && yx < matrixWidth.GetLength(1); yx++)
+                    if(matrixWidth[yx, yx] == 0.0)
+                        SwapRows(matrixWidth, yx, SearchOkRow(matrixWidth, yx, yx + 1));
+
+                int SearchOkRow(double[,] matrixWidth, int columnNeed, int startRow = 0)
+                {
+                    for(int y = startRow; y < matrixWidth.GetLength(0); y++)
+                        if(matrixWidth[y, columnNeed] != 0.0)
+                            return y;
+                    throw new Exception($"Не получилось расставить строки так, чтобы получилась единичная матрица.\n" +
+                        $"Неправильная строка: {columnNeed}, таблица:\n{matrixWidth.TableToString()}");
+                }
+
+                void SwapRows(double[,] matrixWidth, int first, int second)
+                {
+                    for(int x = 0; x < matrixWidth.GetLength(1); x++)
+                    {
+                        double buffer = matrixWidth[first, x];
+                        matrixWidth[first, x] = matrixWidth[second, x];
+                        matrixWidth[second,x ] = buffer;
+                    }
+                }
+            }
+        
+            // Возвращает правую часть матрицы.
+            double[,] GetRightMatrix(double[,] matrixWidth)
+            {
+                double[,] output = new double[matrixWidth.GetLength(0), matrixWidth.GetLength(1) / 2];
+                for(int y = 0; y < matrixWidth.GetLength(0); y++)
+                    for(int x = matrixWidth.GetLength(1) / 2; x < matrixWidth.GetLength(1); x++)
+                    {
+                        Console.WriteLine($"output[y, x - matrixWidth.GetLength(1) / 2] = matrixWidth[y, x]; // output[{y}, {x - matrixWidth.GetLength(1) / 2}] = matrixWidth[{y}, {x}];");
+                        output[y, x - matrixWidth.GetLength(1) / 2] = matrixWidth[y, x];
+                    }
+                return output;
             }
         }
 
