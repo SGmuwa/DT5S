@@ -258,41 +258,61 @@ namespace Simplex
         /// <returns>Новая матрица, которая обратна к входной.</returns>
         public static double[,] Inversion(this double[,] input)
         {
-            double[,] output = (double[,])input.Clone();
-            double temp;
-            double[,] E = new double[output.GetLength(0), output.GetLength(1)];
-            for (int i = 0; i < E.GetLength(0); i++)
-                for (int j = 0; j < E.GetLength(1); j++)
-                    E[i, j] = i == j
-                        ? 1
-                        : 0;
-            for (int k = 0; k < E.GetLength(0); k++) {
-                temp = output[k, k];
-                for (int j = 0; j < E.GetLength(1); j++) {
-                    output[k, j] /= temp;
-                    E[k, j] /= temp;
-                }
-                for (int i = k + 1; i < E.GetLength(0); i++) {
-                    temp = output[i, k];
-                    for (int j = 0; j < E.GetLength(1); j++) {
-                        output[i, j] -= output[k, j] * temp;
-                        E[i, j] -= E[k, j] * temp;
+            double[,] matrixWidth = new double[input.GetLength(1), input.GetLength(0) * 2]; // Двойная матрица в ширину.
+            for(int y = 0; y < matrixWidth.GetLength(1); y++)
+            {
+                for(int x = 0; x < matrixWidth.GetLength(0) / 2; x++)
+                    matrixWidth[y, x] = input[y, x]; // Входная матрица слева
+                for(int x = matrixWidth.GetLength(0); x < matrixWidth.GetLength(0); x++)
+                    matrixWidth[y, x] = y == x - matrixWidth.GetLength(0) ? 1 : 0; // Единичная матрица справа.
+            }
+            do
+            {
+                var badRow = SearchMaxNumbers(); // Ищет строку максимально плохую
+                if(badRow == null)
+                    break;
+                var rowCompensation = SearchRowForAddition(badRow);
+                FixRow(badRow, rowCompensation);
+            } while(true);
+            Normilize(); // Умножает каждую строку так, чтобы получились слева одни единицы.
+            MoveRowsIfNeed(); // Перемещает единицы на диагональ.
+            return GetLeftMatrix();
+
+            int? SearchMaxNumbers()
+            {
+                int max = 1;
+                int? rowOutput = null;
+                for(int y = 0; y < matrixWidth.GetLength(1); y++)
+                {
+                    int count = GetNumbersInRow(y);
+                    if(count > max)
+                    {
+                        max = count;
+                        rowOutput = y;
                     }
                 }
-            }
-            for (int k = E.GetLength(0) - 1; k > 0; k--) {
-                for (int i = k - 1; i >= 0; i--) {
-                    temp = output[i, k];
-                    for (int j = 0; j < E.GetLength(1); j++) {
-                        output[i, j] -= output[k, j] * temp;
-                        E[i, j] -= E[k, j] * temp;
-                    }
+                return rowOutput;
+
+                int GetNumbersInRow(int y)
+                {
+                    int output = 0;
+                    for(int x = 0; x < matrixWidth.GetLength(0) / 2; x++)
+                        if(matrixWidth[y, x] != 0.0)
+                            output++;
+                    return output;
                 }
             }
-            for (int i = 0; i < E.GetLength(0); i++)
-                for (int j = 0; j < E.GetLength(1); j++)
-                    output[i, j] = E[i, j];
-            return output;
+            
+            int SearchRowForAddition(int badRow)
+            {
+                int indexOutput = -1;
+                for(int y = 0; y < matrixWidth.GetLength(0); y++)
+                {
+                    if(badRow == y)
+                        continue;
+                    #error todo
+                }
+            }
         }
 
         /// <summary>
