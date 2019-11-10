@@ -267,13 +267,24 @@ namespace Simplex
                 do
                 {
                     Console.WriteLine(matrixWidth.TableToString());
-                    int? badRow = SearchMaxNumbers(matrixWidth); // Ищет строку максимально плохую
-                    Console.WriteLine($"badRow: {badRow}");
-                    if(!badRow.HasValue)
+                    List<int> badRows = SearchMaxNumbers(matrixWidth); // Ищет строку максимально плохую
+                    Console.WriteLine($"badRows: {string.Join(", ", badRows)}");
+                    if(badRows.Count() == 0)
                         break;
-                    var rowCompensation = SearchRowForAddition(matrixWidth, badRow.Value);
-                    Console.WriteLine($"rowCompensation: ({rowCompensation.Item1}, [{string.Join(", ", rowCompensation.Item2)}])");
-                    FixRow(matrixWidth, badRow.Value, rowCompensation.Item1, rowCompensation.Item2);
+                    int badRow = 0;
+                    (int, ISet<int>)? rowCompensation = null;
+                    foreach(var br in badRows)
+                    {
+                        badRow = br;
+                        rowCompensation = SearchRowForAddition(matrixWidth, badRow);
+                        if(rowCompensation.HasValue)
+                            break;
+                    }
+                    if(!rowCompensation.HasValue)
+                        throw new Exception($"Тупик в вычислениях. Текущие индексы: {string.Join(", ", badRows)}. "
+                            + $"Матрица:\n{matrixWidth.TableToString()}");
+                    Console.WriteLine($"rowCompensation: ({rowCompensation.Value.Item1}, [{string.Join(", ", rowCompensation.Value.Item2)}])");
+                    FixRow(matrixWidth, badRow, rowCompensation.Value.Item1, rowCompensation.Value.Item2);
                 } while(true);
                 MoveRowsIfNeed(matrixWidth); // Перемещает единицы на диагональ.
                 Console.WriteLine($"MoveRowsIfNeed:\n{matrixWidth.TableToString()}");
@@ -297,20 +308,18 @@ namespace Simplex
                 return output;
             }
 
-            int? SearchMaxNumbers(double[,] matrixWidth)
+            // Возвращает список строк, которые надо исправлять.
+            List<int> SearchMaxNumbers(double[,] matrixWidth)
             {
-                int max = 1;
-                int? rowOutput = null;
+                List<(int, int)> draft = new List<(int, int)>(matrixWidth.GetLength(0));
                 for(int y = 0; y < matrixWidth.GetLength(0); y++)
                 {
                     int count = GetNumbersInRow(y);
-                    if(count > max)
-                    {
-                        max = count;
-                        rowOutput = y;
-                    }
+                    if(count > 1)
+                        draft.Add((count, y));
                 }
-                return rowOutput;
+                draft.Sort((left, right) => left.Item1.CompareTo(right.Item1));
+                return draft.Select(a => a.Item2).ToList();
 
                 int GetNumbersInRow(int y)
                 {
@@ -324,23 +333,30 @@ namespace Simplex
             
             // Ищет строку, которую можно прибавить для исправления.
             // Также возвращает множество индексов, которые подойдут для последующего исправления.
-            (int, ISet<int>) SearchRowForAddition(double[,] matrixWidth, int badRow)
+            (int, ISet<int>)? SearchRowForAddition(double[,] matrixWidth, int badRow)
             {
-                ISet<int> indexesForFix = SearchIndexesForFix();
-                Console.WriteLine($"indexesForFix: [{string.Join(", ", indexesForFix)}]");
+                (ISet<int> indexesForFix, ISet<int> indexesNotTouch) = SearchIndexesForFix(badRow);
+                Console.WriteLine($"indexesForFix({badRow}): [{string.Join(", ", indexesForFix)}]");
                 for(int y = 0; y < matrixWidth.GetLength(0); y++)
                 {
                     if(badRow == y)
                         continue;
                     ISet<int> indexesNotEmpty = SearchNotEmptyIndexes(y);
+                    {
+                        ISet<int> setForCheckIntersection = new HashSet<int>(indexesNotEmpty);
+                        setForCheckIntersection.IntersectWith(indexesNotTouch);
+                        if(setForCheckIntersection.Count > 0)
+                            continue;
+                    }
                     Console.WriteLine($"indexesNotEmpty[{y}]: [{string.Join(", ", indexesNotEmpty)}]");
                     indexesNotEmpty.IntersectWith(indexesForFix); // Пересечение.
                     Console.WriteLine($"indexesNotEmpty[{y}].IntersectWith(indexesForFix): [{string.Join(", ", indexesNotEmpty)}]");
+                    indexesNotEmpty.ExceptWith(indexesNotTouch);
+                    Console.WriteLine($"indexesNotEmpty[{y}].ExceptWith(indexesNotTouch): [{string.Join(", ", indexesNotEmpty)}]");
                     if(indexesNotEmpty.Count > 0)
                         return (y, indexesNotEmpty);
                 }
-                throw new Exception($"Тупик в вычислениях. Текущий индекс: {matrixWidth}. "
-                    + $"Матрица:\n{matrixWidth.TableToString()}");
+                return null;
 
                 HashSet<int> SearchNotEmptyIndexes(int y)
                 {
@@ -351,11 +367,12 @@ namespace Simplex
                     return output;
                 }
 
-                HashSet<int> SearchIndexesForFix() // Возвращает индексы, которые надо починить.
+                (HashSet<int>, HashSet<int>) SearchIndexesForFix(int badRow) // Возвращает индексы, которые надо починить. Вторым отправляет те, которые трогать нельзя.
                 {
-                    HashSet<int> output = SearchNotEmptyIndexes(badRow);
-                    //output.Remove(badRow);
-                    return output;
+                    HashSet<int> bad = SearchNotEmptyIndexes(badRow);
+                    HashSet<int> good = new HashSet<int>(Enumerable.Range(0, matrixWidth.GetLength(1) / 2));
+                    good.ExceptWith(bad);
+                    return (bad, good);
                 }
             }
 
