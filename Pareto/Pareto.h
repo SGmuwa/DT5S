@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "..\String-CLanguage\string_t.h"
+#include "../String-CLanguage/string_t.h"
 #include <locale.h>
 
 
@@ -23,7 +23,7 @@ typedef struct {
 } Pareto_strValueTable;
 
 // Печать таблицы.
-int Pareto_write(const Pareto_strValueTable input)
+void Pareto_write(const Pareto_strValueTable input)
 {
 	printf("\t\t");
 	for (size_t i = 0; i < input.countColumns; i++)
@@ -143,7 +143,11 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 	if (ids == NULL)
 		return (Pareto_strValueTable) { NULL, NULL, NULL, 0, 0 }; // Не хватило памяти.
 
+	#ifdef _MSC_VER
 	memcpy_s(ids, lengthIds * sizeof(*ids), deleteIds, lengthIds * sizeof(*deleteIds));
+	#else
+	memcpy(ids, deleteIds, lengthIds * sizeof(*ids));
+	#endif
 
 	// Удаление одинаковых чисел из ids.
 	if (lengthIds != 0) for (size_t i = lengthIds; --i != 0;)
@@ -211,9 +215,17 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 	}
 
 	for (size_t i = out.countColumns; --i != ~(size_t)0;)
+	#ifdef _MSC_VER
 		memcpy_s(out.titles[i].first, out.titles[i].length, input.titles[i].first, input.titles[i].length);
+	#else
+		memcpy(out.titles[i].first, input.titles[i].first, input.titles[i].length);
+	#endif
 
-	memcpy_s(out.flags, out.countColumns * sizeof(*out.flags), input.flags, input.countColumns * sizeof(*input.flags));
+	#ifdef _MSC_VER
+		memcpy_s(out.flags, out.countColumns * sizeof(*out.flags), input.flags, input.countColumns * sizeof(*input.flags));
+	#else
+		memcpy(out.flags, input.flags, input.countColumns * sizeof(*input.flags));
+	#endif
 
 	// Сформировать список из победителей или нейтралов.
 
@@ -221,7 +233,11 @@ Pareto_strValueTable Pareto_deleteLinesMalloc(const Pareto_strValueTable input, 
 	{
 		for (size_t j = out.countColumns; --j != ~(size_t)0;)
 			out.lines[i].columns[j] = input.lines[maybeWinners[i]].columns[j];
+		#ifdef _MSC_VER
 		memcpy_s(out.lines[i].name.first, out.lines[i].name.length, input.lines[maybeWinners[i]].name.first, input.lines[maybeWinners[i]].name.length);
+		#else
+		memcpy(out.lines[i].name.first, input.lines[maybeWinners[i]].name.first, input.lines[maybeWinners[i]].name.length);
+		#endif
 	}
 	free(maybeWinners);
 	return out;
@@ -393,7 +409,7 @@ int Pareto_destructorTableFree(Pareto_strValueTable* input)
 // 1 - не хватило памяти при создании строк таблицы. Память очищается.
 // 2 - не хватило памяти для создания. Память очищается.
 // 3 - не хватило памяти для создания поля имени. Память очищается.
-int Pareto_intilizalDefaultTableMalloc(Pareto_strValueTable* output)
+int Pareto_initDefaultTableMalloc(Pareto_strValueTable* output)
 {
 	int err = Pareto_intilizalTableMalloc(output, 10, 5, 32);
 	if (err != 0) return err;
@@ -423,16 +439,16 @@ int Pareto_intilizalDefaultTableMalloc(Pareto_strValueTable* output)
 
 
 
-	memcpy_s(output->lines[0].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 120.0, 175.0, 3.0, 15000.0, 1.0 }, sizeof(double[5]));
-	memcpy_s(output->lines[1].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 70.0, 160.0, 2.0, 4000.0, 2.0 }, sizeof(double[5]));
-	memcpy_s(output->lines[2].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 4.0, 20.0, 1.0, -2500.0, 0.0 }, sizeof(double[5]));
-	memcpy_s(output->lines[3].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 85.0, 185.0, 1.0, 70000.0, 2.0 }, sizeof(double[5]));
-	memcpy_s(output->lines[4].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 75.0, 172.0, 2.0, 50000.0, 2.0 }, sizeof(double[5]));
-	memcpy_s(output->lines[5].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 85.0, 170.0, 4.0, 40000.0, 2.0 }, sizeof(double[5]));
-	memcpy_s(output->lines[6].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 60.0, 180.0, 2.0, 30000.0, 1.0 }, sizeof(double[5]));
-	memcpy_s(output->lines[7].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 75.0, 152.0, 1.0, 65000.0, 2.0 }, sizeof(double[5]));
-	memcpy_s(output->lines[8].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 80.0, 151.0, 3.0, 75000.0, 1.0 }, sizeof(double[5]));
-	memcpy_s(output->lines[9].columns, sizeof(*output->lines->columns) * output->countColumns, (double[5]) { 74.0, 174.0, 2.0, 23000.0, 2.0 }, sizeof(double[5]));
+	memcpy(output->lines[0].columns, (double[]) { 120.0, 175.0, 3.0, 15000.0, 1.0 }, sizeof(double[5]));
+	memcpy(output->lines[1].columns, (double[]) { 70.0, 160.0, 2.0, 4000.0, 2.0 }, sizeof(double[5]));
+	memcpy(output->lines[2].columns, (double[]) { 4.0, 20.0, 1.0, -2500.0, 0.0 }, sizeof(double[5]));
+	memcpy(output->lines[3].columns, (double[]) { 85.0, 185.0, 1.0, 70000.0, 2.0 }, sizeof(double[5]));
+	memcpy(output->lines[4].columns, (double[]) { 75.0, 172.0, 2.0, 50000.0, 2.0 }, sizeof(double[5]));
+	memcpy(output->lines[5].columns, (double[]) { 85.0, 170.0, 4.0, 40000.0, 2.0 }, sizeof(double[5]));
+	memcpy(output->lines[6].columns, (double[]) { 60.0, 180.0, 2.0, 30000.0, 1.0 }, sizeof(double[5]));
+	memcpy(output->lines[7].columns, (double[]) { 75.0, 152.0, 1.0, 65000.0, 2.0 }, sizeof(double[5]));
+	memcpy(output->lines[8].columns, (double[]) { 80.0, 151.0, 3.0, 75000.0, 1.0 }, sizeof(double[5]));
+	memcpy(output->lines[9].columns, (double[]) { 74.0, 174.0, 2.0, 23000.0, 2.0 }, sizeof(double[5]));
 	setlocale(LC_ALL, "ru");
 	return 0;
 }
@@ -447,7 +463,11 @@ string_t Pareto_getListNamesMalloc(const Pareto_strValueTable input)
 		return out;
 	out.first[0] = 0;
 	for (size_t i = 0; i < input.countLines; i++)
+		#ifdef _MSC_VER
 		sprintf_s(out.first, out.length, "%s%llu)%s\n", out.first, out.length, (unsigned long long)i, input.lines[i].name.first, input.lines[i].name.length);
+		#else
+		snprintf(out.first, out.length, "%.*s%llu)%.*s\n", (int)out.length, out.first, (unsigned long long)i, (int)input.lines[i].name.length, input.lines[i].name.first);
+		#endif
 
 	return out;
 }
@@ -463,11 +483,19 @@ string_t Pareto_getListTitlesMalloc(const Pareto_strValueTable input)
 	out.first[0] = 0;
 	size_t chars = 0;
 	for (size_t i = 0; i < input.countColumns; i++)
+		#ifdef _MSC_VER
 		chars += sprintf_s(out.first + chars, out.length - chars, "%llu)%s\n", (unsigned long long)i, input.titles[i].first);
+		#else
+		chars += snprintf(out.first + chars, out.length - chars, "%llu)%.*s\n", (unsigned long long)i, (int)input.titles[i].length, input.titles[i].first);
+		#endif
 
 	// Оптимизация по освобождению ненужной памяти.
 	string_t outSmall = { malloc((chars + 1) * sizeof(out.first)), chars + 1 };
+	#ifdef _MSC_VER
 	memcpy_s(outSmall.first, outSmall.length, out.first, chars + 1);
+	#else
+	memcpy(outSmall.first, out.first, chars + 1);
+	#endif
 	free(out.first); out.length = 0; out.first = NULL;
 
 	return outSmall;
