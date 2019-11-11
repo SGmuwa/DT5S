@@ -42,7 +42,7 @@ namespace Simplex
             {
                 double delta = GetDelta(matrix, index_1, countLimits, countVars);
                 matrix[countLimits + 2, index_2 + 2] = delta;
-                double Q = GetDelta(matrix, 0, countLimits, countVars); // A0
+                double Q = GetDelta(matrix, 0, countLimits, countVars);
                 matrix[countLimits + 2, countVars + 2] = Q;
             }
             Console.WriteLine($"Входная таблица:\n{matrix.TableToString(null, (a) => Math.Round((double)a, 3))}\n"
@@ -68,16 +68,12 @@ namespace Simplex
                     Console.Write($"{transMatrix[t, m], 6}");
                 Console.WriteLine();
             }
-            Console.WriteLine($"Свободные коэффициенты для двойственной задачи:\n{string.Join("  ", targetParams)}");
-            Console.WriteLine("\n\nБазисные переменные из последней симплекс таблицы:");
             IList<int> baseVars = new int[countLimits];
             for (int y = 0; y < countLimits; y++) // Сохранение базисных переменных
-            {
                 baseVars[y] = (int)matrix[y + 2, 1];
-                Console.Write(baseVars[y] + " ");
-            }
-            Console.WriteLine();
-            double max_profit = matrix[countLimits + 2, countVars + 2]; // Ответ прибыль 53
+            Console.WriteLine($"Свободные коэффициенты для двойственной задачи: {string.Join("  ", targetParams)}\n"
+                + $"Базисные переменные из последней симплекс таблицы: {string.Join(" ", baseVars)}");
+            double max_profit = matrix[countLimits + 2, countVars + 2];
             int numBasisVar = countLimits; double[,] matrixBasis;
             matrixBasis = new double[numBasisVar, numBasisVar]; // строк, столбцов
             for (int t = 0; t < numBasisVar; t++)
@@ -163,12 +159,12 @@ namespace Simplex
         {
             double delta = 0;
             if (a != 0) {
-                for (int i = 2; i < countLimits + 2 - 1; i++)
-                    delta += matrix[i, 0] * matrix[i, a + 1];
+                for (int y = 2; y < countLimits + 2 - 1; y++)
+                    delta += matrix[y, 0] * matrix[y, a + 1];
                 delta = delta - matrix[0, a + 1];
             } else if (a == 0) {
-                for (int i = 2; i < countLimits + 2 - 1; i++)
-                    delta += matrix[i, 0] * matrix[i, countVar + 2];
+                for (int y = 2; y < countLimits + 2 - 1; y++)
+                    delta += matrix[y, 0] * matrix[y, countVar + 2];
             }
             return delta;
         }
@@ -242,7 +238,7 @@ namespace Simplex
                         output[y, x] = -matrix[y, x] / permitElement;
                     else if (y == permitY)
                         output[y, x] = matrix[y, x] / permitElement;
-                    else // (y == permitY && x == permitX)
+                    else // (y != permitY && x != permitX)
                         output[y, x] = (matrix[y, x] * permitElement - matrix[permitY, x] * matrix[y, permitX]) / permitElement;
             return output;
         }
