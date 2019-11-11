@@ -68,11 +68,11 @@ namespace Simplex
                     Console.Write($"{transMatrix[t, m], 6}");
                 Console.WriteLine();
             }
-            IList<int> baseVars = new int[countLimits];
+            IList<int> baseVarsIndexes = new int[countLimits];
             for (int y = 0; y < countLimits; y++) // Сохранение базисных переменных
-                baseVars[y] = (int)matrix[y + 2, 1];
+                baseVarsIndexes[y] = (int)matrix[y + 2, 1];
             Console.WriteLine($"Свободные коэффициенты для двойственной задачи: {string.Join("  ", targetParams)}\n"
-                + $"Базисные переменные из последней симплекс таблицы: {string.Join(" ", baseVars)}");
+                + $"Базисные переменные из последней симплекс таблицы: {string.Join(" ", baseVarsIndexes)}");
             double max_profit = matrix[countLimits + 2, countVars + 2];
             int numBasisVar = countLimits; double[,] matrixBasis;
             matrixBasis = new double[numBasisVar, numBasisVar]; // строк, столбцов
@@ -82,18 +82,19 @@ namespace Simplex
                         ? 1
                         : 0;
             double[,] matrixD;
-            matrixD = GenerateMatrixD(countLimits, countVars, baseVars, subMatrix, matrixBasis);
+            matrixD = GenerateMatrixD(countLimits, countVars, baseVarsIndexes, subMatrix, matrixBasis);
             Console.WriteLine($"\nСоставленная матрица D:\n{matrixD.TableToString()}");
             matrixD = matrixD.Inversion();
             Console.WriteLine($"\nОбратная Матрица D:\n{matrixD.TableToString()}");
-            for (int i = 0; i < baseVars.Count; i++)
-                baseVars[i] = (int) matrix[i + 2, 0];
+            IList<double> baseVarsValues = new double[countLimits];
+            for (int i = 0; i < baseVarsValues.Count; i++)
+                baseVarsValues[i] = matrix[i + 2, 0];
             IList<double> list4 = new double[countLimits];
             for (int t = 0; t < countLimits; t++) {
                 for (int k = 0; k < countLimits; k++)
-                    list4[t] += matrixD[k, t] * baseVars[k];
+                    list4[t] += matrixD[k, t] * baseVarsValues[k];
             }
-            Console.WriteLine($"Базисный вектор ({string.Join(" ", baseVars)}) умножаем на обратную матрицу D");
+            Console.WriteLine($"Базисный вектор ({string.Join(" ", baseVarsValues)}) умножаем на обратную матрицу D");
             Console.WriteLine($"В каждой строке складываем произведение каждого столбца с базисной переменной столбца: {string.Join(" ", list4)}");
             double GMin = 0;
             for (int t = 0; t < countLimits; t++)
