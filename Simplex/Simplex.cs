@@ -52,7 +52,7 @@ namespace Simplex
                 {
                     int targetColumn = PermitColumn(matrix, countLimits, countVars);
                     int targetString = PermitString(matrix, targetColumn, countLimits, countVars);
-                    matrix = NewSimplexMatrix(matrix, countLimits + 3, countVars + 3, targetColumn, targetString);
+                    matrix = NewSimplexMatrix(matrix, targetColumn, targetString);
                     Console.WriteLine($"Разрешающий элемент: [{targetString}, {targetColumn}], таблица:\n{matrix.TableToString(null, (a) => Math.Round((double)a, 3))}");
                     y = -1;
                     continue;
@@ -92,21 +92,17 @@ namespace Simplex
             Console.WriteLine($"\nОбратная Матрица D:\n{matrixD.TableToString()}");
             for (int i = 0; i < baseVars.Count; i++)
                 baseVars[i] = (int) matrix[i + 2, 0];
-            Console.WriteLine($"Базисный вектор:\n{string.Join(" ", baseVars)}\n");
-            double result = 0;
-            List<double> list4 = new List<double>();
+            IList<double> list4 = new double[countLimits];
             for (int t = 0; t < countLimits; t++) {
                 for (int k = 0; k < countLimits; k++)
-                    result += matrixD[k, t] * baseVars[k];
-                list4.Add(result);
-                result = 0;
+                    list4[t] += matrixD[k, t] * baseVars[k];
             }
-            result = 0; Console.WriteLine("Базисный вектор (5,3,0,0) умножаем на обратную матрицу D");
-            for (int t = 0; t < list4.Count; t++)
-                Console.WriteLine("" + list4[t]);
+            Console.WriteLine($"Базисный вектор ({string.Join(" ", baseVars)}) умножаем на обратную матрицу D");
+            Console.WriteLine($"В каждой строке складываем произведение каждого столбца с базисной переменной столбца: {string.Join(" ", list4)}");
+            double GMin = 0;
             for (int t = 0; t < countLimits; t++)
-                result += freeParams[t] * list4[t];
-            Console.WriteLine("Получившийся вектор умножаем на свободные коэффициенты прямой задачи. Результат для G -> min: " + result);
+                GMin += freeParams[t] * list4[t];
+            Console.WriteLine("Получившийся вектор умножаем на свободные коэффициенты прямой задачи. Результат для G -> min: " + GMin);
             Console.WriteLine("Результат для F -> max: " + max_profit);
         }
 
@@ -223,31 +219,32 @@ namespace Simplex
             return index_min_elem;
         }
 
-        
-        private static double[,] NewSimplexMatrix(double[,] matrix, int strSipleks, int colum, int permitColumn, int permitString)
+        /// <summary>
+        /// Генерация новой таблицы из исходной по правилу симплекса.
+        /// </summary>
+        /// <param name="matrix">Матрица, которую надо обработать симплексом.</param>
+        /// <param name="permitX">Разрешающий столбец.</param>
+        /// <param name="permitY">Разрешающая строка.</param>
+        /// <returns>Новая матрица, сделанная по правилу симплекса из входной матрицы.</returns>
+        private static double[,] NewSimplexMatrix(double[,] matrix, int permitX, int permitY)
         {
-            double[,] matrix2;
-            matrix2 = new double[strSipleks, colum];
-            for (int i = 0; i < strSipleks; i++)
-                for (int j = 0; j < colum; j++)
-                    matrix2[i, j] = matrix[i, j];
-            matrix2[permitString, 0] = matrix[0, permitColumn];
-            matrix2[0, permitColumn] = matrix[permitString, 0];
-            matrix2[permitString, 1] = matrix[1, permitColumn];
-            matrix2[1, permitColumn] = matrix[permitString, 1];
-            double targetElement = matrix[permitString, permitColumn];
-            for (int k = 2; k < colum; k++) // Разрешающая строка (просмотр столбцов) было к = 4
-                if (k != permitColumn)
-                    matrix2[permitString, k] = matrix[permitString, k] / targetElement;
-            for (int k = 2; k < strSipleks; k++) // Разрешающая столбец (просмотр строк) было к = 6
-                if (k != permitString)
-                    matrix2[k, permitColumn] = (-1) * (matrix[k, permitColumn] / targetElement);
-            matrix2[permitString, permitColumn] = 1 / targetElement;
-            for (int str = 2; str < strSipleks; str++)
-                for (int col = 2; col < colum; col++) // столбцы  было col < 5
-                    if (str != permitString && col != permitColumn)
-                        matrix2[str, col] = (matrix[str, col] * targetElement - matrix[permitString, col] * matrix[str, permitColumn]) / targetElement;
-            return matrix2;
+            double[,] output = (double[,])matrix.Clone();
+            output[permitY, 0] = matrix[0, permitX]; // Меняем местами коэффициенты переменных
+            output[permitY, 1] = matrix[1, permitX]; // и их порядковый номер.
+            output[0, permitX] = matrix[permitY, 0];
+            output[1, permitX] = matrix[permitY, 1];
+            double permitElement = matrix[permitY, permitX];
+            for (int y = 2; y < output.GetLength(0); y++)
+                for (int x = 2; x < matrix.GetLength(1); x++)
+                    if (y == permitY && x == permitX)
+                        output[y, x] = 1 / permitElement;
+                    else if (x == permitX)
+                        output[y, x] = -matrix[y, x] / permitElement;
+                    else if (y == permitY)
+                        output[y, x] = matrix[y, x] / permitElement;
+                    else // (y == permitY && x == permitX)
+                        output[y, x] = (matrix[y, x] * permitElement - matrix[permitY, x] * matrix[y, permitX]) / permitElement;
+            return output;
         }
 
         /// <summary>
@@ -261,14 +258,11 @@ namespace Simplex
             
             double[,] inversion()
             {
-                if(input.GetLength(1) != input.GetLength(0)) // Возможно излишняя проверка.
-                    throw new NotSupportedException("Поддерживаются только квадратные матрицы.");
                 double[,] matrixWidth = InitMatrixWidth(input);
                 do
                 {
                     Console.WriteLine(matrixWidth.TableToString());
                     List<int> badRows = SearchMaxNumbers(matrixWidth); // Ищет строку максимально плохую
-                    Console.WriteLine($"badRows: {string.Join(", ", badRows)}");
                     if(badRows.Count() == 0)
                         break;
                     int badRow = 0;
@@ -283,15 +277,11 @@ namespace Simplex
                     if(!rowCompensation.HasValue)
                         throw new Exception($"Тупик в вычислениях. Текущие индексы: {string.Join(", ", badRows)}. "
                             + $"Матрица:\n{matrixWidth.TableToString()}");
-                    Console.WriteLine($"rowCompensation: ({rowCompensation.Value.Item1}, [{string.Join(", ", rowCompensation.Value.Item2)}])");
                     FixRow(matrixWidth, badRow, rowCompensation.Value.Item1, rowCompensation.Value.Item2);
                 } while(true);
                 MoveRowsIfNeed(matrixWidth); // Перемещает единицы на диагональ.
-                Console.WriteLine($"MoveRowsIfNeed:\n{matrixWidth.TableToString()}");
                 Normalize(matrixWidth); // Умножает каждую строку так, чтобы получились слева одни единицы.
-                Console.WriteLine($"Normalize:\n{matrixWidth.TableToString()}");
                 double[,] right = GetRightMatrix(matrixWidth);
-                Console.WriteLine($"GetRightMatrix:\n{right.TableToString()}");
                 return right;
             }
 
@@ -336,7 +326,6 @@ namespace Simplex
             (int, ISet<int>)? SearchRowForAddition(double[,] matrixWidth, int badRow)
             {
                 (ISet<int> indexesForFix, ISet<int> indexesNotTouch) = SearchIndexesForFix(badRow);
-                Console.WriteLine($"indexesForFix({badRow}): [{string.Join(", ", indexesForFix)}]");
                 for(int y = 0; y < matrixWidth.GetLength(0); y++)
                 {
                     if(badRow == y)
@@ -348,11 +337,8 @@ namespace Simplex
                         if(setForCheckIntersection.Count > 0)
                             continue;
                     }
-                    Console.WriteLine($"indexesNotEmpty[{y}]: [{string.Join(", ", indexesNotEmpty)}]");
                     indexesNotEmpty.IntersectWith(indexesForFix); // Пересечение.
-                    Console.WriteLine($"indexesNotEmpty[{y}].IntersectWith(indexesForFix): [{string.Join(", ", indexesNotEmpty)}]");
                     indexesNotEmpty.ExceptWith(indexesNotTouch);
-                    Console.WriteLine($"indexesNotEmpty[{y}].ExceptWith(indexesNotTouch): [{string.Join(", ", indexesNotEmpty)}]");
                     if(indexesNotEmpty.Count > 0)
                         return (y, indexesNotEmpty);
                 }
@@ -380,9 +366,7 @@ namespace Simplex
             void FixRow(double[,] matrixWidth, int badRow, int rowForAdd, ISet<int> indexesGoodForAdd)
             {
                 int indexColumnForAdd = indexesGoodForAdd.First();
-                Console.WriteLine($"indexColumnForAdd: {indexColumnForAdd}");
                 double CoefficientForAdd = -matrixWidth[badRow, indexColumnForAdd] / matrixWidth[rowForAdd, indexColumnForAdd];
-                Console.WriteLine($"CoefficientForAdd: {CoefficientForAdd}");
                 AddRow(badRow, rowForAdd, CoefficientForAdd);
                 matrixWidth[badRow, indexColumnForAdd] = 0.0; // Нормализация. Необходимо, чтобы не оставалось хвостов после запятой.
 
@@ -441,10 +425,7 @@ namespace Simplex
                 double[,] output = new double[matrixWidth.GetLength(0), matrixWidth.GetLength(1) / 2];
                 for(int y = 0; y < matrixWidth.GetLength(0); y++)
                     for(int x = matrixWidth.GetLength(1) / 2; x < matrixWidth.GetLength(1); x++)
-                    {
-                        Console.WriteLine($"output[y, x - matrixWidth.GetLength(1) / 2] = matrixWidth[y, x]; // output[{y}, {x - matrixWidth.GetLength(1) / 2}] = matrixWidth[{y}, {x}];");
                         output[y, x - matrixWidth.GetLength(1) / 2] = matrixWidth[y, x];
-                    }
                 return output;
             }
         }
