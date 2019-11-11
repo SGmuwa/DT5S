@@ -139,7 +139,7 @@ namespace Simplex
 		{
             while(true)
             {
-                Console.WriteLine(message);
+                Console.Write(message);
                 if(parse(Console.ReadLine(), out T output))
                     return output;
                 Console.WriteLine($"\"{output}\" не может быть прочитан с помощью {parse.Method}");
