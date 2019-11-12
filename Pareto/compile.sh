@@ -10,12 +10,12 @@ mkdir -p ./bin
 # -o <файл> - путь до выходного файла.
 # ParetoInterface.c - главный файл компиляции.
 echo Win32
-i686-w64-mingw32-gcc -finput-charset=utf-8 -fexec-charset=ibm866 -O -m32 -std=c11 -o ./bin/pareto32.exe ParetoInterface.c
+i686-w64-mingw32-gcc -finput-charset=utf-8 -fexec-charset=ibm866 -O0 -m32 -std=c11 -o ./bin/pareto32.exe ParetoInterface.c
 echo Win64
-x86_64-w64-mingw32-gcc -finput-charset=utf-8 -fexec-charset=ibm866 -O -m64 -std=c11 -o ./bin/pareto64.exe ParetoInterface.c
+x86_64-w64-mingw32-gcc -finput-charset=utf-8 -fexec-charset=ibm866 -O0 -m64 -std=c11 -o ./bin/pareto64.exe ParetoInterface.c
 echo Linux32
-gcc -O -m32 -std=c11 -o ./bin/pareto32 ParetoInterface.c
+gcc -O0 -m32 -std=c11 -o ./bin/pareto32 ParetoInterface.c
 chmod a+x ./bin/pareto32
 echo Linux64
-gcc -O -m64 -std=c11 -o ./bin/pareto64 ParetoInterface.c
+gcc -O0 -m64 -std=c11 -o ./bin/pareto64 ParetoInterface.c
 chmod a+x ./bin/pareto64
