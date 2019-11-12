@@ -1,8 +1,10 @@
 ﻿#include "Pareto.h"
 #include "../UserInterface-CLanguage/UserInterface.h"
+#include <locale.h>
 
 void main(void)
 {
+	setlocale(LC_ALL, "ru");
 	Pareto_strValueTable table;
 	if (Pareto_initDefaultTableMalloc(&table) != 0) // Создание таблицы
 	{

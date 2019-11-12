@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../String-CLanguage/string_t.h"
-#include <locale.h>
 
 
 
@@ -449,7 +448,6 @@ int Pareto_initDefaultTableMalloc(Pareto_strValueTable* output)
 	memcpy(output->lines[7].columns, (double[]) { 75.0, 152.0, 1.0, 65000.0, 2.0 }, sizeof(double[5]));
 	memcpy(output->lines[8].columns, (double[]) { 80.0, 151.0, 3.0, 75000.0, 1.0 }, sizeof(double[5]));
 	memcpy(output->lines[9].columns, (double[]) { 74.0, 174.0, 2.0, 23000.0, 2.0 }, sizeof(double[5]));
-	setlocale(LC_ALL, "ru");
 	return 0;
 }
 
